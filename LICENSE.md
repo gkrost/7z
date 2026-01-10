@@ -55,7 +55,7 @@ This library is free software; you can redistribute it and/or modify it under th
 This library is distributed in the hope that it will be useful, but **WITHOUT ANY WARRANTY**; without even the implied warranty of **MERCHANTABILITY** or **FITNESS FOR A PARTICULAR PURPOSE**. See the GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License along with this library; if not, you can get a copy from:
-- **Web**: http://www.gnu.org/licenses/lgpl-2.1.html
+- **Web**: https://www.gnu.org/licenses/lgpl-2.1.html
 - **File**: [DOC/copying.txt](DOC/copying.txt) (full LGPL text included in this repository)
 
 ---
@@ -155,7 +155,7 @@ This package contains some files from **LZMA SDK**.
 
 LZMA SDK is written and placed in the **public domain** by Igor Pavlov.
 
-You can download LZMA SDK from: http://www.7-zip.org/sdk.html
+You can download LZMA SDK from: https://www.7-zip.org/sdk.html
 
 ---
 
@@ -190,13 +190,13 @@ When using 7-Zip source code:
 - **Full LGPL Text**: [DOC/copying.txt](DOC/copying.txt)
 - **Original License File**: [DOC/License.txt](DOC/License.txt)
 - **unRAR License**: [DOC/unRarLicense.txt](DOC/unRarLicense.txt)
-- **GNU LGPL Official**: http://www.gnu.org/licenses/lgpl-2.1.html
+- **GNU LGPL Official**: https://www.gnu.org/licenses/lgpl-2.1.html
 
 ---
 
 ## Questions?
 
 For licensing questions:
-- Visit the official website: http://www.7-zip.org
-- Check the forums: http://sourceforge.net/projects/sevenzip/forums
+- Visit the official website: https://www.7-zip.org
+- Check the forums: https://sourceforge.net/projects/sevenzip/forums
 - Review the full license texts in the [DOC/](DOC/) directory

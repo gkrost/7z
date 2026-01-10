@@ -179,8 +179,8 @@ Fixes: #123
 ### Where to Report
 
 - **GitHub Issues** (for this repository)
-- **SourceForge Forum**: http://sourceforge.net/projects/sevenzip/forums
-- **Official 7-Zip Website**: http://www.7-zip.org
+- **SourceForge Forum**: https://sourceforge.net/projects/sevenzip/forums
+- **Official 7-Zip Website**: https://www.7-zip.org
 
 ### Security Issues
 
@@ -239,7 +239,7 @@ If you need help with development:
 
 - **Read the documentation** in [DOC/](DOC/) directory
 - **Study existing code** for examples
-- **Ask on forums** - http://sourceforge.net/projects/sevenzip/forums
+- **Ask on forums** - https://sourceforge.net/projects/sevenzip/forums
 - **Check Architecture docs** - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ## Recognition
@@ -255,7 +255,7 @@ Contributors are acknowledged in various ways:
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - Code structure
 - [docs/API.md](docs/API.md) - API documentation
 - [DOC/7zFormat.txt](DOC/7zFormat.txt) - 7z format specification
-- [Official Website](http://www.7-zip.org) - Main 7-Zip website
+- [Official Website](https://www.7-zip.org) - Main 7-Zip website
 
 ---
 

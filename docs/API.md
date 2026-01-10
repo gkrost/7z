@@ -115,7 +115,7 @@ LZMA SDK is a **public domain** library for LZMA compression/decompression.
 
 ### Download
 
-Get the latest LZMA SDK from: http://www.7-zip.org/sdk.html
+Get the latest LZMA SDK from: https://www.7-zip.org/sdk.html
 
 ### LZMA SDK Components
 
@@ -463,4 +463,4 @@ When using 7-Zip code:
 For API questions:
 - Study the example code in `CPP/7zip/UI/Client7z/`
 - Check the LZMA SDK documentation
-- Visit the forums: http://sourceforge.net/projects/sevenzip/forums
+- Visit the forums: https://sourceforge.net/projects/sevenzip/forums

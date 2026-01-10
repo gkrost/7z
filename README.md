@@ -20,7 +20,7 @@
 
 ## Quick Links
 
-- 🏠 [Official Website](http://www.7-zip.org)
+- 🏠 [Official Website](https://www.7-zip.org)
 - 📖 [Building Instructions](BUILDING.md)
 - 🤝 [Contributing Guidelines](CONTRIBUTING.md)
 - 📄 [License Information](LICENSE.md)
@@ -29,7 +29,7 @@
 
 ## For End Users
 
-If you're looking to download and use 7-Zip, please visit the [official 7-Zip website](http://www.7-zip.org) for pre-built binaries and installers.
+If you're looking to download and use 7-Zip, please visit the [official 7-Zip website](https://www.7-zip.org) for pre-built binaries and installers.
 
 This repository contains the **source code** for developers who want to build 7-Zip themselves or contribute to the project.
 
@@ -87,8 +87,8 @@ Recent security fixes are documented in [DOC/src-history.txt](DOC/src-history.tx
 
 ## Support
 
-- **Website**: http://www.7-zip.org
-- **Forum**: http://sourceforge.net/projects/sevenzip/forums
+- **Website**: https://www.7-zip.org
+- **Forum**: https://sourceforge.net/projects/sevenzip/forums
 - **Bug Reports**: Use the SourceForge forum or submit issues on GitHub
 
 ## Credits

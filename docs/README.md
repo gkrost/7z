@@ -43,6 +43,6 @@ The `DOC/` directory contains the original technical documentation in plain text
 
 ## External Resources
 
-- **Official Website**: http://www.7-zip.org
-- **LZMA SDK**: http://www.7-zip.org/sdk.html
-- **Support Forum**: http://sourceforge.net/projects/sevenzip/forums
+- **Official Website**: https://www.7-zip.org
+- **LZMA SDK**: https://www.7-zip.org/sdk.html
+- **Support Forum**: https://sourceforge.net/projects/sevenzip/forums

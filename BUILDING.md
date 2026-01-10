@@ -150,19 +150,50 @@ make -j -f ../../cmpl_mac_arm64.mak
 
 For optimized x86/x64 builds on Linux, install ASMC:
 
+> **⚠️ Security Note**: The instructions below clone and install third-party software from GitHub. For production builds, consider using distribution packages if available, or pin to a specific release tag and verify signatures/checksums. Installing from arbitrary HEAD commits without verification may pose supply-chain security risks.
+
+**Option 1: Install from source (development/testing)**
 ```bash
-git clone https://github.com/nidud/asmc.git
+# Clone a specific release tag instead of HEAD for reproducibility
+git clone --depth 1 --branch v2.60 https://github.com/nidud/asmc.git
 cd asmc/source
 make
 sudo make install
 ```
 
-Or install UASM:
+**Option 2: Manual installation without sudo**
 ```bash
-git clone https://github.com/Terraspace/UASM.git
+git clone --depth 1 https://github.com/nidud/asmc.git
+cd asmc/source
+make
+# Install to local directory instead of system-wide
+mkdir -p ~/bin
+cp asmc ~/bin/
+export PATH="$HOME/bin:$PATH"
+```
+
+Or install UASM:
+
+> **⚠️ Security Note**: Similar to ASMC, installing from arbitrary commits without verification may pose security risks. Consider pinning to a release or using a local installation path.
+
+**Option 1: Install from source (development/testing)**
+```bash
+# Clone a specific release or commit for reproducibility
+git clone --depth 1 https://github.com/Terraspace/UASM.git
 cd UASM
 make -f gcc64.mak
 sudo cp uasm /usr/local/bin/
+```
+
+**Option 2: Manual installation without sudo**
+```bash
+git clone --depth 1 https://github.com/Terraspace/UASM.git
+cd UASM
+make -f gcc64.mak
+# Install to local directory
+mkdir -p ~/bin
+cp uasm ~/bin/
+export PATH="$HOME/bin:$PATH"
 ```
 
 ### Using UASM
