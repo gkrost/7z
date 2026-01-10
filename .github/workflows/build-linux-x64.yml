@@ -25,6 +25,7 @@ jobs:
         
     - name: Build 7z
       run: |
+        set -e
         cd CPP/7zip/Bundles/Alone
         make -j$(nproc) -f ../../cmpl_gcc.mak
         
