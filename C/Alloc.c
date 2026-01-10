@@ -434,11 +434,7 @@ void *z7_AlignedAlloc(size_t size)
     return NULL;
   pAligned = MY_ALIGN_PTR_UP_PLUS(p, ALLOC_ALIGN_SIZE);
 
-  Print(" size="); PrintHex(size, 8);
-  Print(" a_size="); PrintHex(newSize, 8);
-  Print(" ptr="); PrintAddr(p);
-  Print(" a_ptr="); PrintAddr(pAligned);
-  PrintLn();
+
 
   ((void **)pAligned)[-1] = p;
 
@@ -450,8 +446,7 @@ void *z7_AlignedAlloc(size_t size)
   if (posix_memalign(&p, ALLOC_ALIGN_SIZE, size))
     return NULL;
 
-  Print(" posix_memalign="); PrintAddr(p);
-  PrintLn();
+
 
   return p;
 
@@ -565,13 +560,7 @@ static void *AlignOffsetAlloc_Alloc(ISzAllocPtr pp, size_t size)
   PrintPtr("alig", pAligned);
 #endif
 
-  PrintLn();
-  Print("- Aligned: ");
-  Print(" size="); PrintHex(size, 8);
-  Print(" a_size="); PrintHex(newSize, 8);
-  Print(" ptr="); PrintAddr(adr);
-  Print(" a_ptr="); PrintAddr(pAligned);
-  PrintLn();
+
 
   REAL_BLOCK_PTR_VAR(pAligned) = adr;
 
@@ -589,9 +578,7 @@ static void AlignOffsetAlloc_Free(ISzAllocPtr pp, void *address)
   if (address)
   {
     const CAlignOffsetAlloc *p = Z7_CONTAINER_FROM_VTBL_CONST(pp, CAlignOffsetAlloc, vt);
-    PrintLn();
-    Print("- Aligned Free: ");
-    PrintLn();
+
     ISzAlloc_Free(p->baseAlloc, REAL_BLOCK_PTR_VAR(address));
   }
 #endif
