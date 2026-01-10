@@ -1,6 +1,6 @@
 # 7-Zip Code Quality Issues Report
 
-This document contains findings from a comprehensive code quality analysis of the 7-Zip source code repository. Each section below contains copy-pasteable GitHub issue text blocks that can be used to track and address these issues.
+This document contains findings from a comprehensive code quality analysis of the 7-Zip source code repository. Each section below contains copy-pastable GitHub issue text blocks that can be used to track and address these issues.
 
 ## Table of Contents
 

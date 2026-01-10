@@ -56,25 +56,28 @@ Replace `GetVersion()` with Windows Version Helper APIs:
 ```c
 #include <VersionHelpers.h>
 
-// Instead of:
-if ((UInt16)GetVersion() != 6)
-
-// Use:
-if (!IsWindowsVistaOrGreater() || IsWindows7OrGreater())
+// Instead of checking for non-Vista using the deprecated GetVersion():
+// if ((UInt16)GetVersion() != 6)
+//
+// Use Version Helper APIs to skip only Vista and Windows 7 (both 6.x):
+if (!IsWindowsVistaOrGreater() || IsWindows8OrGreater())
 ```
 
-Or for more precise control:
+Note: The original code checks `(UInt16)GetVersion() != 6`, which matches any OS where the major version is NOT 6 (i.e., XP/Server 2003 with version 5.x, or Windows 10+ with version 10.x). To replicate this behavior, we check if the OS is either below Vista OR Windows 8 or greater.
+
+Or for more precise control, define a helper:
 
 ```c
 #include <VersionHelpers.h>
 
-BOOL IsWindowsVistaExact() 
+// Returns TRUE if NOT in the Vista/7/8 family (version 6.x)
+BOOL IsNonVista6Family() 
 {
-    return IsWindowsVistaOrGreater() && !IsWindows7OrGreater();
+    return !IsWindowsVistaOrGreater() || IsWindows8Point1OrGreater();
 }
 
 #define IF_NON_VISTA_SET_DLL_DIRS_AND_RETURN \
-    if (!IsWindowsVistaExact()) { \
+    if (IsNonVista6Family()) { \
       // ... rest of macro
 ```
 

@@ -46,12 +46,12 @@ LONG InterlockedDecrement(LONG volatile *addend)
 
 ### Issues
 
-1. **Race Condition**: The `USE_HACK_UNSAFE_ATOMIC` path performs a read-modify-write operation that is NOT atomic:
+1. **Race Condition**: The `USE_HACK_UNSAFE_ATOMIC` path performs a read-modify-write operation that is NOT atomic. One possible interleaving is:
    - Thread A reads `*addend` (value = 5)
    - Thread B reads `*addend` (value = 5)
    - Thread A increments and writes 6
    - Thread B increments and writes 6
-   - Expected result: 7, Actual result: 6 (lost update!)
+   - Expected result: 7; one possible actual result: 6 (lost update!). Other interleavings may appear "correct" (for example, Thread B writes 7 after A, or A writes 7 after B), but the behavior is non-deterministic and can still lose updates
 
 2. **No Memory Barrier**: Even on single-core systems, compiler optimizations or CPU reordering could cause issues
 
@@ -106,4 +106,4 @@ Verify it's never defined in build configurations or makefiles.
 ### References
 
 - CERT C Coding Standard: CON43-C
-- CWE-362: Concurrent Execution using Shared Resource with Improper Synchronization
+- [CWE-362: Concurrent Execution using Shared Resource with Improper Synchronization](https://cwe.mitre.org/data/definitions/362.html)

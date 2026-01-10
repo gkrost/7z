@@ -154,19 +154,21 @@ If dropping very old MSVC support, use intrinsics everywhere:
 
 ```c
 #if defined(_MSC_VER)
+  #include <intrin.h>
   void Z7_FASTCALL z7_x86_cpuid(UInt32 p[4], UInt32 func)
   {
-    __cpuid((int*)p, func);
+    __cpuid((int *)p, (int)func);
   }
 #elif defined(__GNUC__) || defined(__clang__)
+  #include <cpuid.h>
   void Z7_FASTCALL z7_x86_cpuid(UInt32 p[4], UInt32 func)
   {
-    __cpuid(func, p[0], p[1], p[2], p[3]);
+    __get_cpuid(func, &p[0], &p[1], &p[2], &p[3]);
   }
 #endif
 ```
 
-But this requires MSVC 2005+ (currently code supports older versions).
+Note: `__cpuid` has been available since much earlier MSVC versions (for example, VC6 on x86); this option instead assumes you can rely on the intrinsic on your target architectures (including x64) and are no longer constrained by very old MSVC versions or ECX-related CPUID bugs.
 
 ### Testing Requirements
 

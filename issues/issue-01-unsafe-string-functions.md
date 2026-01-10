@@ -10,7 +10,7 @@ The codebase contains multiple uses of unsafe C string functions that are prone 
 
 ### Findings
 
-#### sprintf usage (should use snprintf):
+#### sprintf usage (should use snprintf) - 11 instances:
 - `C/Util/7z/7zMain.c:501` - commented out sprintf
 - `CPP/7zip/Archive/FlvHandler.cpp:225` - `sprintf(temp, " = %.3f", d);`
 - `CPP/7zip/UI/Common/OpenArchive.cpp:1324` - `sprintf(temp, "%s %d", s, n);`
@@ -55,10 +55,11 @@ Buffer overflow vulnerabilities can lead to:
    snprintf(temp, sizeof(temp), " = %.3f", d);
    ```
 
-2. **Replace strcpy/strcat with safe alternatives**:
+2. **Replace strcpy/strcat with safer and more portable alternatives**:
    ```c
-   // Use strncpy, strncat, or better yet strcpy_s, strcat_s on Windows
-   // Use wcsncpy_s, wcsncat_s for wide character strings
+   // Prefer bounded functions like strncpy and strncat, ensuring explicit null-termination.
+   // Where available, use strlcpy and strlcat instead of strncpy/strncat for better semantics.
+   // On Windows/MSVC specifically, you may use strcpy_s, strcat_s, wcsncpy_s, and wcsncat_s.
    ```
 
 3. **Conduct security audit** of all string manipulation code

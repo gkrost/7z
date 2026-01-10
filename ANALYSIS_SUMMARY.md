@@ -49,9 +49,9 @@ This PR provides a comprehensive code quality analysis of the 7-Zip source code 
 ## Statistics
 
 - **Total issues documented**: 8
-- **Total documentation lines**: ~1,800
+- **Issue documentation lines**: ~1,800 (of 2,233+ total markdown lines across 11 files)
 - **Files analyzed**: ~999 C/C++ files
-- **Unsafe sprintf calls**: 11+
+- **Unsafe sprintf calls**: 11
 - **Disabled code blocks (#if 0)**: 139
 - **Compiler workarounds**: 10+ major workarounds
 - **UNUSED_VAR markers**: 118
