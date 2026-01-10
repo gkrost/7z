@@ -381,30 +381,7 @@ typedef
 #define MY_ALIGN_PTR_UP_PLUS(p, align) MY_ALIGN_PTR_DOWN(((char *)(p) + (align) + ADJUST_ALLOC_SIZE), align)
 #endif
 
-/*
-  This posix_memalign() is for test purposes only.
-  We also need special Free() function instead of free(),
-  if this posix_memalign() is used.
-*/
 
-/*
-static int posix_memalign(void **ptr, size_t align, size_t size)
-{
-  size_t newSize = size + align;
-  void *p;
-  void *pAligned;
-  *ptr = NULL;
-  if (newSize < size)
-    return 12; // ENOMEM
-  p = MyAlloc(newSize);
-  if (!p)
-    return 12; // ENOMEM
-  pAligned = MY_ALIGN_PTR_UP_PLUS(p, align);
-  ((void **)pAligned)[-1] = p;
-  *ptr = pAligned;
-  return 0;
-}
-*/
 
 /*
   ALLOC_ALIGN_SIZE >= sizeof(void *)
