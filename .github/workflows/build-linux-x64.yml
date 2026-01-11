@@ -28,6 +28,18 @@ jobs:
         set -e
         echo "Installing ASMC assembler for ASM optimizations..."
         git clone --depth 1 https://github.com/nidud/asmc.git /tmp/asmc
+        # Ensure ASMC binary exists; if not, attempt to build from source
+        if [ ! -f /tmp/asmc/bin/asmc ]; then
+          echo "ASMC binary not found at /tmp/asmc/bin/asmc. Attempting to build from source..."
+          cd /tmp/asmc
+          make -j"$(nproc)"
+          cd -
+        fi
+
+        if [ ! -f /tmp/asmc/bin/asmc ]; then
+          echo "ERROR: ASMC binary still not found at /tmp/asmc/bin/asmc after build attempt."
+          exit 1
+        fi
         sudo cp /tmp/asmc/bin/asmc /usr/local/bin/
         sudo chmod +x /usr/local/bin/asmc
         echo "ASMC installed successfully"
