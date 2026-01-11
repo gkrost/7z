@@ -8,8 +8,7 @@ This code is based on PPMd var.H (2001): Dmitry Shkarin : Public domain */
 
 #include "Ppmd7.h"
 
-/* define PPMD7_ORDER_0_SUPPPORT to suport order-0 mode, unsupported by orignal PPMd var.H. code */
-// #define PPMD7_ORDER_0_SUPPPORT
+
  
 MY_ALIGN(16)
 static const Byte PPMD7_kExpEscape[16] = { 25, 14, 9, 7, 5, 5, 4, 4, 4, 3, 3, 3, 2, 2, 2, 2 };
@@ -380,16 +379,7 @@ void Ppmd7_RestartModel(CPpmd7 *p)
       SetSuccessor(s, 0);
     }
 
-    #ifdef PPMD7_ORDER_0_SUPPPORT
-    if (p->MaxOrder == 0)
-    {
-      CPpmd_Void_Ref r = REF(mc);
-      s = p->FoundState;
-      for (i = 0; i < 256; i++, s++)
-        SetSuccessor(s, r);
-      return;
-    }
-    #endif
+
   }
 
   for (i = 0; i < 128; i++)
@@ -831,9 +821,7 @@ static void Ppmd7_Rescale(CPpmd7 *p)
 
   adder = (p->OrderFall != 0);
 
-  #ifdef PPMD7_ORDER_0_SUPPPORT
-  adder |= (p->MaxOrder == 0); // we don't remove symbols from order-0 context
-  #endif
+
 
   sumFreq = (sumFreq + 4 + adder) >> 1;
   i = (unsigned)p->MinContext->NumStats - 1;

@@ -63,22 +63,22 @@ void Delta_Encode(Byte *state, unsigned delta, Byte *data, SizeT size)
       const Byte *lim = data + delta;
       ptrdiff_t dif = -(ptrdiff_t)delta;
       
-      if (((ptrdiff_t)size + dif) & 1)
+if (((ptrdiff_t)size + dif) & 1)
       {
-        --p;  *p = (Byte)(*p - p[dif]);
+        --p;  *p = (Byte)(*p - ((p + dif >= data && p + dif < data + size) ? p[dif] : 0));
       }
 
       while (p != lim)
       {
-        --p;  *p = (Byte)(*p - p[dif]);
-        --p;  *p = (Byte)(*p - p[dif]);
+        --p;  *p = (Byte)(*p - ((p + dif >= data && p + dif < data + size) ? p[dif] : 0));
+        --p;  *p = (Byte)(*p - ((p + dif >= data && p + dif < data + size) ? p[dif] : 0));
       }
       
       dif = -dif;
       
-      do
+do
       {
-        --p;  *p = (Byte)(*p - temp[--dif]);
+        --p;  *p = (Byte)(*p - temp[(--dif >= 0 && dif < (ptrdiff_t)delta) ? dif : 0]);
       }
       while (dif != 0);
     }

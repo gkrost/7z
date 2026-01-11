@@ -446,21 +446,36 @@ static SRes SzFolder_Decode2(const CSzFolder *folder,
           outSizeCur = (SizeT)unpackSize;
           if (outSizeCur != unpackSize)
             return SZ_ERROR_MEM;
-          temp = (Byte *)ISzAlloc_Alloc(allocMain, outSizeCur);
+temp = (Byte *)ISzAlloc_Alloc(allocMain, outSizeCur);
           if (!temp && outSizeCur != 0)
+          {
+            // Clean up any previously allocated memory
+            if (tempBuf[0]) { ISzAlloc_Free(allocMain, tempBuf[0]); tempBuf[0] = NULL; }
+            if (tempBuf[1]) { ISzAlloc_Free(allocMain, tempBuf[1]); tempBuf[1] = NULL; }
             return SZ_ERROR_MEM;
+          }
           outBufCur = tempBuf[1 - ci] = temp;
           tempSizes[1 - ci] = outSizeCur;
         }
         else if (ci == 2)
         {
-          if (unpackSize > outSize) /* check it */
+if (unpackSize > outSize) /* check it */
+          {
+            // Clean up any previously allocated memory
+            if (tempBuf[0]) { ISzAlloc_Free(allocMain, tempBuf[0]); tempBuf[0] = NULL; }
+            if (tempBuf[1]) { ISzAlloc_Free(allocMain, tempBuf[1]); tempBuf[1] = NULL; }
             return SZ_ERROR_PARAM;
+          }
           tempBuf3 = outBufCur = outBuffer + (outSize - (size_t)unpackSize);
           tempSize3 = outSizeCur = (SizeT)unpackSize;
         }
-        else
+else
+        {
+          // Clean up any previously allocated memory
+          if (tempBuf[0]) { ISzAlloc_Free(allocMain, tempBuf[0]); tempBuf[0] = NULL; }
+          if (tempBuf[1]) { ISzAlloc_Free(allocMain, tempBuf[1]); tempBuf[1] = NULL; }
           return SZ_ERROR_UNSUPPORTED;
+        }
       }
       offset = packPositions[si];
       inSize = packPositions[(size_t)si + 1] - offset;
@@ -468,8 +483,13 @@ static SRes SzFolder_Decode2(const CSzFolder *folder,
 
       if (coder->MethodID == k_Copy)
       {
-        if (inSize != outSizeCur) /* check it */
+if (inSize != outSizeCur) /* check it */
+        {
+          // Clean up any previously allocated memory
+          if (tempBuf[0]) { ISzAlloc_Free(allocMain, tempBuf[0]); tempBuf[0] = NULL; }
+          if (tempBuf[1]) { ISzAlloc_Free(allocMain, tempBuf[1]); tempBuf[1] = NULL; }
           return SZ_ERROR_DATA;
+        }
         RINOK(SzDecodeCopy(inSize, inStream, outBufCur))
       }
       else if (coder->MethodID == k_LZMA)
