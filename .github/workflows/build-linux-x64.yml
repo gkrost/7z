@@ -60,7 +60,7 @@ jobs:
         make -j$(nproc) -f ../../cmpl_gcc_x64.mak || {
           echo "ASM build failed. This is expected if ASMC has compatibility issues."
           echo "Falling back to regular GCC build without ASM optimizations..."
-          make clean -f ../../cmpl_gcc.mak
+          make clean -f ../../cmpl_gcc_x64.mak
           make -j$(nproc) -f ../../cmpl_gcc.mak
         }
         
