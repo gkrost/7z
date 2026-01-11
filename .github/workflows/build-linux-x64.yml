@@ -97,11 +97,15 @@ jobs:
         echo "Checking for ASM-optimized object files..."
         if [ -d b/g_x64 ]; then
           echo "ASM build directory exists. Checking for ASM object files:"
-          if ls -lh b/g_x64/*.o 2>/dev/null | grep -qE "(7zCrcOpt|AesOpt|Sha1Opt|Sha256Opt|LzFindOpt|XzCrc64Opt|Sort)"; then
-            echo "✓ ASM optimizations enabled!"
-            ls -lh b/g_x64/*.o 2>/dev/null | grep -E "(7zCrcOpt|AesOpt|Sha1Opt|Sha256Opt|LzFindOpt|XzCrc64Opt|Sort)"
+          if compgen -G "b/g_x64/*.o" > /dev/null; then
+            if printf '%s\n' b/g_x64/*.o | grep -qE "(7zCrcOpt|AesOpt|Sha1Opt|Sha256Opt|LzFindOpt|XzCrc64Opt|Sort)"; then
+              echo "✓ ASM optimizations enabled!"
+              printf '%s\n' b/g_x64/*.o | grep -E "(7zCrcOpt|AesOpt|Sha1Opt|Sha256Opt|LzFindOpt|XzCrc64Opt|Sort)"
+            else
+              echo "⚠ No ASM object files found (C fallback used)"
+            fi
           else
-            echo "⚠ No ASM object files found (C fallback used)"
+            echo "⚠ No object files produced in ASM build directory"
           fi
         else
           echo "⚠ ASM build directory not found - using standard C implementations"
