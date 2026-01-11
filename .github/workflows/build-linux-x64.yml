@@ -23,27 +23,42 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y build-essential g++ make
         
-    - name: Build 7z
+    - name: Install ASMC assembler for ASM optimizations
+      run: |
+        set -e
+        git clone --depth 1 --branch v2.60 https://github.com/nidud/asmc.git /tmp/asmc
+        cd /tmp/asmc/source
+        make -j$(nproc)
+        sudo make install
+        asmc --version || asmc -h | head -5
+        
+    - name: Build 7z with ASM optimizations
       run: |
         set -e
         cd CPP/7zip/Bundles/Alone
-        make -j$(nproc) -f ../../cmpl_gcc.mak
+        make -j$(nproc) -f ../../cmpl_gcc_x64.mak
         
     - name: Verify build
       run: |
         cd CPP/7zip/Bundles/Alone
-        ls -lh b/g/7za
-        file b/g/7za
-        ./b/g/7za --help
+        ls -lh b/g_x64/7za
+        file b/g_x64/7za
+        ./b/g_x64/7za --help
         
     - name: Run benchmark test
       run: |
         cd CPP/7zip/Bundles/Alone
-        ./b/g/7za b
+        ./b/g_x64/7za b
+        
+    - name: Verify ASM optimizations are used
+      run: |
+        cd CPP/7zip/Bundles/Alone
+        echo "Checking for ASM-optimized object files:"
+        ls -lh b/g_x64/*.o | grep -E "(7zCrcOpt|AesOpt|Sha1Opt|Sha256Opt|LzFindOpt|XzCrc64Opt|Sort)" || echo "No ASM object files found"
         
     - name: Upload 7za binary
       uses: actions/upload-artifact@v4
       with:
-        name: 7za-linux-x64
-        path: CPP/7zip/Bundles/Alone/b/g/7za
+        name: 7za-linux-x64-asm-optimized
+        path: CPP/7zip/Bundles/Alone/b/g_x64/7za
         retention-days: 30
