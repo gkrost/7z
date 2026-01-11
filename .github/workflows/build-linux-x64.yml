@@ -47,7 +47,6 @@ jobs:
         
     - name: Build 7z with ASM optimizations enabled
       run: |
-        set -e
         cd CPP/7zip/Bundles/Alone
         echo "Building with cmpl_gcc_x64.mak which enables USE_ASM=1..."
         echo "This will attempt to compile ASM-optimized implementations for:"
