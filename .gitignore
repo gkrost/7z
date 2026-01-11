@@ -1,1 +1,11 @@
-CPP/7zip/Bundles/*/_o/*
+# Python caches
+__pycache__/
+*.pyc
+
+# Test framework artifacts
+tests/results/
+tests/test_data/
+results/
+test_data/
+
+test_framework.py.log
