@@ -30,8 +30,8 @@ jobs:
         git clone --depth 1 https://github.com/nidud/asmc.git /tmp/asmc
         sudo cp /tmp/asmc/bin/asmc /usr/local/bin/
         sudo chmod +x /usr/local/bin/asmc
-        echo "ASMC version:"
-        asmc -h 2>&1 | head -3 || echo "ASMC help output not available"
+        echo "ASMC installed successfully"
+        asmc -h 2>&1 | head -5 || true
         
     - name: Build 7z with ASM optimizations enabled
       run: |
@@ -86,7 +86,12 @@ jobs:
         echo "Checking for ASM-optimized object files..."
         if [ -d b/g_x64 ]; then
           echo "ASM build directory exists. Checking for ASM object files:"
-          ls -lh b/g_x64/*.o 2>/dev/null | grep -E "(7zCrcOpt|AesOpt|Sha1Opt|Sha256Opt|LzFindOpt|XzCrc64Opt|Sort)" && echo "✓ ASM optimizations enabled!" || echo "⚠ No ASM object files found (C fallback used)"
+          if ls -lh b/g_x64/*.o 2>/dev/null | grep -qE "(7zCrcOpt|AesOpt|Sha1Opt|Sha256Opt|LzFindOpt|XzCrc64Opt|Sort)"; then
+            echo "✓ ASM optimizations enabled!"
+            ls -lh b/g_x64/*.o 2>/dev/null | grep -E "(7zCrcOpt|AesOpt|Sha1Opt|Sha256Opt|LzFindOpt|XzCrc64Opt|Sort)"
+          else
+            echo "⚠ No ASM object files found (C fallback used)"
+          fi
         else
           echo "⚠ ASM build directory not found - using standard C implementations"
         fi

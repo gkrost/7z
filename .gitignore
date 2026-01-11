@@ -20,4 +20,5 @@ _o/
 *.swp
 *.swo
 *~
-.DS_Store*.err
+.DS_Store
+*.err
