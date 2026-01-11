@@ -1,0 +1,49 @@
+name: Build 7z Linux x64
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-linux-x64:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential g++ make
+        
+    - name: Build 7z
+      run: |
+        set -e
+        cd CPP/7zip/Bundles/Alone
+        make -j$(nproc) -f ../../cmpl_gcc.mak
+        
+    - name: Verify build
+      run: |
+        cd CPP/7zip/Bundles/Alone
+        ls -lh b/g/7za
+        file b/g/7za
+        ./b/g/7za --help
+        
+    - name: Run benchmark test
+      run: |
+        cd CPP/7zip/Bundles/Alone
+        ./b/g/7za b
+        
+    - name: Upload 7za binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: 7za-linux-x64
+        path: CPP/7zip/Bundles/Alone/b/g/7za
+        retention-days: 30

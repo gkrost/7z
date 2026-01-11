@@ -143,12 +143,6 @@ static void PrintAddr(void *p)
 #define PRINT_ALLOC(name, cnt, size, ptr)
 #endif
 #define PRINT_FREE(name, cnt, ptr)
-#define Print(s)
-#define PrintLn()
-#ifndef Z7_ALLOC_NO_OFFSET_ALLOCATOR
-#define PrintHex(v, align)
-#endif
-#define PrintAddr(p)
 
 #endif
 
