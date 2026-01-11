@@ -21,3 +21,4 @@ _o/
 *.swo
 *~
 .DS_Store
+*.err

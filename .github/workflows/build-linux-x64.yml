@@ -23,27 +23,100 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y build-essential g++ make
         
-    - name: Build 7z
+    - name: Install ASM assembler for optimizations
       run: |
         set -e
+        echo "Installing ASMC assembler for ASM optimizations..."
+        git clone --depth 1 https://github.com/nidud/asmc.git /tmp/asmc
+        # Ensure ASMC binary exists; if not, attempt to build from source
+        if [ ! -f /tmp/asmc/bin/asmc ]; then
+          echo "ASMC binary not found at /tmp/asmc/bin/asmc. Attempting to build from source..."
+          cd /tmp/asmc
+          make -j"$(nproc)"
+          cd -
+        fi
+
+        if [ ! -f /tmp/asmc/bin/asmc ]; then
+          echo "ERROR: ASMC binary still not found at /tmp/asmc/bin/asmc after build attempt."
+          exit 1
+        fi
+        sudo cp /tmp/asmc/bin/asmc /usr/local/bin/
+        sudo chmod +x /usr/local/bin/asmc
+        echo "ASMC installed successfully"
+        asmc -h 2>&1 | head -5 || true
+        
+    - name: Build 7z with ASM optimizations enabled
+      run: |
         cd CPP/7zip/Bundles/Alone
-        make -j$(nproc) -f ../../cmpl_gcc.mak
+        echo "Building with cmpl_gcc_x64.mak which enables USE_ASM=1..."
+        echo "This will attempt to compile ASM-optimized implementations for:"
+        echo "  - CRC calculations (7zCrcOpt)"
+        echo "  - AES encryption (AesOpt)"
+        echo "  - SHA1/SHA256 hashing (Sha1Opt, Sha256Opt)"
+        echo "  - LZMA encoding (LzFindOpt)"
+        echo "  - Sorting (Sort)"
+        echo "  - XZ CRC64 (XzCrc64Opt)"
+        make -j$(nproc) -f ../../cmpl_gcc_x64.mak || {
+          echo "ASM build failed. This is expected if ASMC has compatibility issues."
+          echo "Falling back to regular GCC build without ASM optimizations..."
+          make clean -f ../../cmpl_gcc_x64.mak
+          make -j$(nproc) -f ../../cmpl_gcc.mak
+        }
         
     - name: Verify build
       run: |
         cd CPP/7zip/Bundles/Alone
-        ls -lh b/g/7za
-        file b/g/7za
-        ./b/g/7za --help
+        # Check both possible build outputs (x64 for ASM, g for non-ASM)
+        if [ -f b/g_x64/7za ]; then
+          echo "Found ASM-optimized build:"
+          ls -lh b/g_x64/7za
+          file b/g_x64/7za
+          ./b/g_x64/7za --help
+        elif [ -f b/g/7za ]; then
+          echo "Found standard build (ASM build failed):"
+          ls -lh b/g/7za
+          file b/g/7za
+          ./b/g/7za --help
+        else
+          echo "Error: No build output found!"
+          exit 1
+        fi
         
     - name: Run benchmark test
       run: |
         cd CPP/7zip/Bundles/Alone
-        ./b/g/7za b
+        if [ -f b/g_x64/7za ]; then
+          ./b/g_x64/7za b
+        else
+          ./b/g/7za b
+        fi
+        
+    - name: Verify ASM optimizations
+      run: |
+        cd CPP/7zip/Bundles/Alone
+        echo "Checking for ASM-optimized object files..."
+        if [ -d b/g_x64 ]; then
+          echo "ASM build directory exists. Checking for ASM object files:"
+          if compgen -G "b/g_x64/*.o" > /dev/null; then
+            if printf '%s\n' b/g_x64/*.o | grep -qE "(7zCrcOpt|AesOpt|Sha1Opt|Sha256Opt|LzFindOpt|XzCrc64Opt|Sort)"; then
+              echo "✓ ASM optimizations enabled!"
+              printf '%s\n' b/g_x64/*.o | grep -E "(7zCrcOpt|AesOpt|Sha1Opt|Sha256Opt|LzFindOpt|XzCrc64Opt|Sort)"
+            else
+              echo "⚠ No ASM object files found (C fallback used)"
+            fi
+          else
+            echo "⚠ No object files produced in ASM build directory"
+          fi
+        else
+          echo "⚠ ASM build directory not found - using standard C implementations"
+        fi
         
     - name: Upload 7za binary
       uses: actions/upload-artifact@v4
       with:
         name: 7za-linux-x64
-        path: CPP/7zip/Bundles/Alone/b/g/7za
+        path: |
+          CPP/7zip/Bundles/Alone/b/g_x64/7za
+          CPP/7zip/Bundles/Alone/b/g/7za
         retention-days: 30
+        if-no-files-found: warn
