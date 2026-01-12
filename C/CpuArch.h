@@ -311,13 +311,8 @@ MY_CPU_64BIT means that processor can work with 64-bit registers.
 #endif
 
 #ifdef _MSC_VER
-  #if _MSC_VER >= 1300
-    #define MY_CPU_pragma_pack_push_1   __pragma(pack(push, 1))
-    #define MY_CPU_pragma_pop           __pragma(pack(pop))
-  #else
-    #define MY_CPU_pragma_pack_push_1
-    #define MY_CPU_pragma_pop
-  #endif
+  #define MY_CPU_pragma_pack_push_1   __pragma(pack(push, 1))
+  #define MY_CPU_pragma_pop           __pragma(pack(pop))
 #else
   #ifdef __xlC__
     #define MY_CPU_pragma_pack_push_1   _Pragma("pack(1)")
@@ -360,7 +355,7 @@ MY_CPU_64BIT means that processor can work with 64-bit registers.
        | (((UInt32)(v) >> 24)                   ))
 
 
-#if defined(_MSC_VER) && (_MSC_VER >= 1300)
+#if defined(_MSC_VER)
 
 #include <stdlib.h>
 

@@ -15,9 +15,7 @@ This guide provides detailed instructions for building 7-Zip from source on diff
 
 ### Windows
 
-- **Visual Studio 2017/2019/2022** (recommended) or older compilers:
-  - Visual C++ 6.0 with Platform SDK (for x86)
-  - Windows Server 2003 R2 Platform SDK (for x64, IA64)
+- **Visual Studio 2017 or later** (minimum: VS 2017, recommended: VS 2019/2022)
 - **Microsoft Macro Assembler**:
   - `ml.exe` for x86
   - `ml64.exe` for x64
@@ -25,7 +23,7 @@ This guide provides detailed instructions for building 7-Zip from source on diff
 
 ### Linux/macOS
 
-- **GCC** or **Clang** compiler
+- **GCC 7 or later** or **Clang 5 or later**
 - **Make** utility
 - **Optional**: Assembler for optimized builds
   - [Asmc Macro Assembler](https://github.com/nidud/asmc) (recommended for x86/x64)
@@ -95,7 +93,6 @@ nmake
 You can define these macros when building:
 
 - `PLATFORM=x64` or `x86` or `arm64` or `arm` or `ia64`
-- `OLD_COMPILER=1` - For old compilers like MSVC 6.0
 - `MY_DYNAMIC_LINK=1` - For dynamic linking to msvcrt.dll (default is static)
 
 Example:
@@ -254,10 +251,8 @@ make -j -f makefile.gcc DISABLE_RAR_COMPRESS=1
 **Problem**: `ml.exe` or `ml64.exe` not found
 - **Solution**: Install Windows SDK or ensure the SDK bin directory is in your PATH
 
-**Problem**: Platform SDK directories not found (MSVC 6.0)
-- **Solution**: Set include and library directories in Visual Studio:
-  - Tools → Options → Directories
-  - Add Platform SDK paths to Include files and Library files
+**Problem**: Unsupported compiler version
+- **Solution**: 7-Zip requires Visual Studio 2017 or later. Please upgrade your compiler.
 
 ### Linux/macOS Issues
 

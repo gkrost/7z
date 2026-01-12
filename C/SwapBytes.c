@@ -30,13 +30,7 @@ typedef UInt32 CSwapUInt32;
     #if (_MSC_VER == 1900)
       #pragma warning(disable : 4752) // found Intel(R) Advanced Vector Extensions; consider using /arch:AVX
     #endif
-    #if (_MSC_VER >= 1900)
-      #define k_SwapBytes_Mode_MAX  k_SwapBytes_Mode_AVX2
-    #elif (_MSC_VER >= 1500)  // (VS2008)
-      #define k_SwapBytes_Mode_MAX  k_SwapBytes_Mode_SSSE3
-    #elif (_MSC_VER >= 1310)  // (VS2003)
-      #define k_SwapBytes_Mode_MAX  k_SwapBytes_Mode_SSE2
-    #endif
+    #define k_SwapBytes_Mode_MAX  k_SwapBytes_Mode_AVX2
   #endif // _MSC_VER
 
 /*
@@ -453,12 +447,8 @@ SwapBytes4_128(CSwapUInt32 *items, const CSwapUInt32 *lim)
 #if defined(Z7_MSC_VER_ORIGINAL) && defined(MY_CPU_X86)
   /* _byteswap_ushort() in MSVC x86 32-bit works via slow { mov dh, al; mov dl, ah }
      So we use own versions of byteswap function */
-  #if (_MSC_VER < 1400 )  // old MSVC-X86 without _rotr16() support
-    #define SWAP2_16(i)  { UInt32 v = items[i];  v += (v << 16);  v >>= 8;  items[i] = (CSwapUInt16)v; }
-  #else  // is new MSVC-X86 with fast _rotr16()
-    #include <intrin.h>
-    #define SWAP2_16(i)  { items[i] = _rotr16(items[i], 8); }
-  #endif
+  #include <intrin.h>
+  #define SWAP2_16(i)  { items[i] = _rotr16(items[i], 8); }
 #else  // is not MSVC-X86
   #define SWAP2_16(i)  { CSwapUInt16 v = items[i];  items[i] = Z7_BSWAP16(v); }
 #endif  // MSVC-X86

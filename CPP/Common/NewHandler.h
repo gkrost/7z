@@ -20,18 +20,9 @@ DOCs:
   The /Zc:throwingNew option tells the compiler to leave out these null checks,
   on the assumption that all linked memory allocators conform to the standard.
 
-The operator new() in some MSVC versions doesn't throw exception std::bad_alloc.
-MSVC 6.0 (_MSC_VER == 1200) doesn't throw exception.
-The code produced by some another MSVC compilers also can be linked
-to library that doesn't throw exception.
-We suppose that code compiled with VS2015+ (_MSC_VER >= 1900) throws exception std::bad_alloc.
-For older _MSC_VER versions we redefine operator new() and operator delete().
-Our version of operator new() throws CNewException() exception on failure.
-
-It's still allowed to use redefined version of operator new() from "NewHandler.cpp"
-with any compiler. 7-Zip's code can work with std::bad_alloc and CNewException() exceptions.
-But if you use some additional code (outside of 7-Zip's code), you must check
-that redefined version of operator new() is not problem for your code.
+We assume that all supported compilers (VS2017+, GCC 7+, Clang 5+) properly
+throw std::bad_alloc on allocation failure. The old workaround for MSVC < 1600
+is no longer needed.
 */
 
 #include <stddef.h>
@@ -46,10 +37,8 @@ void my_delete(void *p) throw();
 #endif
 
 
-#if defined(_MSC_VER) && (_MSC_VER < 1600)
-  // If you want to use default operator new(), you can disable the following line
-  #define Z7_REDEFINE_OPERATOR_NEW
-#endif
+// Z7_REDEFINE_OPERATOR_NEW is no longer defined by default
+// All supported compilers properly throw std::bad_alloc
 
 
 #ifdef Z7_REDEFINE_OPERATOR_NEW
@@ -65,18 +54,6 @@ __cdecl
 #endif
 operator new(size_t size);
 
-/*
-#if 0 && defined(_MSC_VER) && _MSC_VER == 1600
-  #define Z7_OPERATOR_DELETE_SPEC_THROW0
-#else
-  #define Z7_OPERATOR_DELETE_SPEC_THROW0 throw()
-#endif
-*/
-#if defined(_MSC_VER) && _MSC_VER == 1600
-#pragma warning(push)
-#pragma warning(disable : 4986) // 'operator delete': exception specification does not match previous declaration
-#endif
-
 void
 #ifdef _MSC_VER
 __cdecl
@@ -88,10 +65,6 @@ void
 __cdecl
 #endif
 operator delete(void *p, size_t n) throw();
-
-#if defined(_MSC_VER) && _MSC_VER == 1600
-#pragma warning(pop)
-#endif
 
 
 #else

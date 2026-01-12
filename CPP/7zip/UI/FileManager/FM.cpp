@@ -475,7 +475,7 @@ static void Set_Wow64()
 
 #endif
 
-#if _MSC_VER > 1400 /* && _MSC_VER <= 1900 */
+#if defined(_MSC_VER)
   // GetVersion was declared deprecated
   #pragma warning(disable : 4996)
 #endif

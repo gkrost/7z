@@ -46,11 +46,7 @@ typedef int SRes;
 
 
 #ifdef _MSC_VER
-  #if _MSC_VER > 1200
-    #define MY_ALIGN(n) __declspec(align(n))
-  #else
-    #define MY_ALIGN(n)
-  #endif
+  #define MY_ALIGN(n) __declspec(align(n))
 #else
   /*
   // C11/C++11:
@@ -270,11 +266,7 @@ typedef int BoolInt;
 
 #ifdef _MSC_VER
 
-#if _MSC_VER >= 1300
 #define Z7_NO_INLINE __declspec(noinline)
-#else
-#define Z7_NO_INLINE
-#endif
 
 #define Z7_FORCE_INLINE __forceinline
 
