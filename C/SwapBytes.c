@@ -27,16 +27,8 @@ typedef UInt32 CSwapUInt32;
       #define SWAP_ATTRIB_SSSE3 __attribute__((__target__("ssse3")))
       #define SWAP_ATTRIB_AVX2  __attribute__((__target__("avx2")))
   #elif defined(_MSC_VER)
-    #if (_MSC_VER == 1900)
-      #pragma warning(disable : 4752) // found Intel(R) Advanced Vector Extensions; consider using /arch:AVX
-    #endif
-    #if (_MSC_VER >= 1900)
-      #define k_SwapBytes_Mode_MAX  k_SwapBytes_Mode_AVX2
-    #elif (_MSC_VER >= 1500)  // (VS2008)
-      #define k_SwapBytes_Mode_MAX  k_SwapBytes_Mode_SSSE3
-    #elif (_MSC_VER >= 1310)  // (VS2003)
-      #define k_SwapBytes_Mode_MAX  k_SwapBytes_Mode_SSE2
-    #endif
+    // VS2017+ provides the intrinsics we need for the AVX2 implementation.
+    #define k_SwapBytes_Mode_MAX  k_SwapBytes_Mode_AVX2
   #endif // _MSC_VER
 
 /*
@@ -453,12 +445,8 @@ SwapBytes4_128(CSwapUInt32 *items, const CSwapUInt32 *lim)
 #if defined(Z7_MSC_VER_ORIGINAL) && defined(MY_CPU_X86)
   /* _byteswap_ushort() in MSVC x86 32-bit works via slow { mov dh, al; mov dl, ah }
      So we use own versions of byteswap function */
-  #if (_MSC_VER < 1400 )  // old MSVC-X86 without _rotr16() support
-    #define SWAP2_16(i)  { UInt32 v = items[i];  v += (v << 16);  v >>= 8;  items[i] = (CSwapUInt16)v; }
-  #else  // is new MSVC-X86 with fast _rotr16()
-    #include <intrin.h>
-    #define SWAP2_16(i)  { items[i] = _rotr16(items[i], 8); }
-  #endif
+  #include <intrin.h>
+  #define SWAP2_16(i)  { items[i] = _rotr16(items[i], 8); }
 #else  // is not MSVC-X86
   #define SWAP2_16(i)  { CSwapUInt16 v = items[i];  items[i] = Z7_BSWAP16(v); }
 #endif  // MSVC-X86
@@ -599,14 +587,12 @@ SwapBytes4_64(CSwapUInt32 *items, const CSwapUInt32 *lim)
     // asm ("rev16 %r0,%r0" : "+r" (a));  // for gcc
 #endif
 
-#elif defined(_MSC_VER) && (_MSC_VER < 1300) && defined(MY_CPU_X86) \
-    || !defined(Z7_CPU_FAST_BSWAP_SUPPORTED) \
+#elif !defined(Z7_CPU_FAST_BSWAP_SUPPORTED) \
     || !defined(Z7_CPU_FAST_ROTATE_SUPPORTED)
-  // old msvc doesn't support _byteswap_ulong()
   #define SWAP2_32_VAR(v) \
     v = ((v & 0xff00ff) << 8) + ((v >> 8) & 0xff00ff);
 
-#else  // is not ARM and is not old-MSVC-X86 and fast BSWAP/ROTATE are supported
+#else  // is not ARM and fast BSWAP/ROTATE are supported
   #define SWAP2_32_VAR(v) \
     v = Z7_BSWAP32(v); \
     v = rotlFixed(v, 16);

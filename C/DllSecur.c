@@ -43,19 +43,19 @@ static BOOL IsNonVista6Family(void)
   HMODULE hMod;
   Func_RtlGetVersion func;
   OSVERSIONINFOW vi;
-  
+
   hMod = GetModuleHandleW(L"ntdll.dll");
   if (!hMod)
     return TRUE; /* Assume non-Vista if we can't check */
-  
+
   func = (Func_RtlGetVersion) Z7_CAST_FUNC_C GetProcAddress(hMod, "RtlGetVersion");
   if (!func)
     return TRUE; /* Assume non-Vista if we can't check */
-  
+
   vi.dwOSVersionInfoSize = sizeof(vi);
   if (func(&vi) != 0)
     return TRUE; /* RtlGetVersion failed (non-zero NTSTATUS), assume non-Vista */
-  
+
   /* Return TRUE if major version is NOT 6 (not Vista/7/8/8.1) */
   return vi.dwMajorVersion != 6;
 }
@@ -69,6 +69,7 @@ static BOOL IsNonVista6Family(void)
       (Func_SetDefaultDllDirectories) Z7_CAST_FUNC_C GetProcAddress(GetModuleHandle(TEXT("kernel32.dll")), \
            "SetDefaultDllDirectories"); \
       if (setDllDirs) if (setDllDirs(MY_LOAD_LIBRARY_SEARCH_SYSTEM32 | MY_LOAD_LIBRARY_SEARCH_USER_DIRS)) return; }
+
 
 void My_SetDefaultDllDirectories(void)
 {

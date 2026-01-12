@@ -15,9 +15,7 @@ This guide provides detailed instructions for building 7-Zip from source on diff
 
 ### Windows
 
-- **Visual Studio 2017/2019/2022** (recommended) or older compilers:
-  - Visual C++ 6.0 with Platform SDK (for x86)
-  - Windows Server 2003 R2 Platform SDK (for x64, IA64)
+- **Visual Studio 2017/2019/2022** (Visual Studio 2017 is the minimum supported version)
 - **Microsoft Macro Assembler**:
   - `ml.exe` for x86
   - `ml64.exe` for x64
@@ -84,18 +82,17 @@ nmake
 
 ### Method 2: Visual Studio IDE
 
-1. Open the `.dsp` file for the component you want to build in Visual Studio
-2. Select the configuration (Debug or Release)
-3. Build the project
+The upstream build uses `nmake` makefiles. For IDE-based development/debugging,
+create a Visual Studio **NMake** project (or open a folder) and point it at the
+same `nmake` commands you use on the command line.
 
-**Note**: IDE compilation is useful for development and debugging, but final binaries should be built via makefiles for optimal performance.
+**Note**: IDE usage is convenient for development and debugging, but release binaries should be built via `nmake` for consistent results.
 
 ### Build Options for Windows
 
 You can define these macros when building:
 
 - `PLATFORM=x64` or `x86` or `arm64` or `arm` or `ia64`
-- `OLD_COMPILER=1` - For old compilers like MSVC 6.0
 - `MY_DYNAMIC_LINK=1` - For dynamic linking to msvcrt.dll (default is static)
 
 Example:

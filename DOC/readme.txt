@@ -81,8 +81,6 @@ Some macronames can be defined for compiling with makefile:
 PLATFORM
   with possible values: x64, x86, arm64, arm, ia64
 
-OLD_COMPILER
-  for old VC compiler, like MSCV 6.0.
 
 MY_DYNAMIC_LINK
   for dynamic linking to the run-time library (msvcrt.dll). 

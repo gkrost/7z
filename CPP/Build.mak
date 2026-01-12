@@ -46,9 +46,6 @@ RFLAGS = $(RFLAGS) -dUNDER_CE
 LFLAGS = $(LFLAGS) /ENTRY:mainACRTStartup
 !ENDIF
 !ELSE
-!IFDEF OLD_COMPILER
-LFLAGS = $(LFLAGS) -OPT:NOWIN98
-!ENDIF
 !IF "$(PLATFORM)" != "arm" && "$(PLATFORM)" != "arm64"
 CFLAGS = $(CFLAGS) -Gr
 !ENDIF
@@ -63,11 +60,7 @@ COMPL_ASM = $(MY_ML) $** $O/$(*B).obj
 COMPL_ASM = $(MY_ML) -c -Fo$O/ $**
 !ENDIF
 
-!IFDEF OLD_COMPILER
-CFLAGS_WARN_LEVEL = -W4
-!ELSE
 CFLAGS_WARN_LEVEL = -Wall
-!ENDIF
 
 CFLAGS = $(CFLAGS) -nologo -c -Fo$O/ $(CFLAGS_WARN_LEVEL) -WX -EHsc -Gy -GR- -GF
 
@@ -95,18 +88,9 @@ CFLAGS = $(CFLAGS) -MT
 CFLAGS = $(CFLAGS_COMMON) $(CFLAGS)
 
 
-!IFNDEF OLD_COMPILER
-
 CFLAGS = $(CFLAGS) -GS- -Zc:wchar_t
-!IFDEF VCTOOLSVERSION
-!IF "$(VCTOOLSVERSION)" >= "14.00"
 !IF "$(CC)" != "clang-cl"
 CFLAGS = $(CFLAGS) -Zc:throwingNew
-!ENDIF
-!ENDIF
-!ELSE
-# -Zc:forScope is default in VS2010. so we need it only for older versions
-CFLAGS = $(CFLAGS) -Zc:forScope
 !ENDIF
 
 !IFNDEF UNDER_CE
@@ -122,8 +106,6 @@ CFLAGS = $(CFLAGS) -MP$(MP_NPROC)
 !IFNDEF PLATFORM
 # CFLAGS = $(CFLAGS) -arch:IA32
 !ENDIF
-!ENDIF
-
 !ENDIF
 
 

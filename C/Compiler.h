@@ -16,6 +16,12 @@
 #endif
 
 #ifdef _MSC_VER
+
+// Windows builds require at least Visual Studio 2017.
+// MSVC version mapping: VS2017 starts at _MSC_VER == 1910.
+#if _MSC_VER < 1910
+  #error "Visual Studio 2017 (MSVC 19.10, _MSC_VER >= 1910) or newer is required."
+#endif
 #if !defined(__clang__) && !defined(__GNUC__)
 #define Z7_MSC_VER_ORIGINAL _MSC_VER
 #endif
@@ -118,16 +124,7 @@ typedef void (*Z7_void_Function)(void);
 // >= 1900 : -O1 : for printf
 #pragma warning(disable : 4710) // function not inlined
 
-#if _MSC_VER < 1900
-// winnt.h: 'Int64ShllMod32'
-#pragma warning(disable : 4514) // unreferenced inline function has been removed
-#endif
-    
-#if _MSC_VER < 1300
-// #pragma warning(disable : 4702) // unreachable code
-// Bra.c : -O1:
-#pragma warning(disable : 4714) // function marked as __forceinline not inlined
-#endif
+// Legacy MSVC versions (< VS2017) are not supported anymore.
 
 /*
 #if _MSC_VER > 1400 && _MSC_VER <= 1900
