@@ -233,7 +233,7 @@ LRESULT CPanel::SetItemText(LVITEMW &item)
     {
       UInt64 deltaFull = g_prev_tick - g_start_tick;
       char s[128];
-      sprintf(s, "%d", conv_ticks(deltaFull));
+      snprintf(s, sizeof(s), "%d", conv_ticks(deltaFull));
       OutputDebugStringA(s);
       g_start_tick = dw;
       g_NumGroups++;
@@ -243,15 +243,15 @@ LRESULT CPanel::SetItemText(LVITEMW &item)
     char s[128];
     UInt64 deltaFull = dw - g_start_tick;
     // for (int i = 0; i < 100000; i++)
-    sprintf(s, "%d %d %d-%d ", g_NumMessages, g_Num_SetItemText, g_NumGroups, conv_ticks(deltaFull));
-    // sprintf(s, "%d-%d ", g_NumGroups, conv_ticks(deltaFull));
+    snprintf(s, sizeof(s), "%d %d %d-%d ", g_NumMessages, g_Num_SetItemText, g_NumGroups, conv_ticks(deltaFull));
+    // snprintf(s, sizeof(s), "%d-%d ", g_NumGroups, conv_ticks(deltaFull));
     u = s;
     lstrcpyW(text, u.Ptr());
     text += u.Len();
 
     // dw = GetCpuTicks();
     // deltaFull = dw - g_prev_tick;
-    // sprintf(s, "-%d ", conv_ticks(deltaFull));
+    // snprintf(s, sizeof(s), "-%d ", conv_ticks(deltaFull));
     // u = s;
     // lstrcpyW(text, u.Ptr());
     // text += u.Len();
@@ -761,7 +761,7 @@ void CPanel::Refresh_StatusBar()
   /*
   g_name_cnt++;
   char s[256];
-  sprintf(s, "g_name_cnt = %8d", g_name_cnt);
+  snprintf(s, sizeof(s), "g_name_cnt = %8d", g_name_cnt);
   OutputDebugStringA(s);
   */
   // DWORD dw = GetTickCount();
@@ -832,7 +832,7 @@ void CPanel::Refresh_StatusBar()
   // }
   /*
   dw = GetTickCount() - dw;
-  sprintf(s, "status = %8d ms", dw);
+  snprintf(s, sizeof(s), "status = %8d ms", dw);
   OutputDebugStringA(s);
   */
 }

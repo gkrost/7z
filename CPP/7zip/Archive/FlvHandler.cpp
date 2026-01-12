@@ -222,7 +222,7 @@ AString CHandler::GetComment()
           }
           double d = *(double *)reverse;
           char temp[32];
-          sprintf(temp, " = %.3f", d);
+          snprintf(temp, sizeof(temp), " = %.3f", d);
           res += temp;
           p += 8;
           size -= 8;

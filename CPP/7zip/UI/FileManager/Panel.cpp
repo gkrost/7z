@@ -675,7 +675,7 @@ void Print_OnNotify(const char *name)
 {
   char s[256];
   DWORD tim = GetTickCount();
-  sprintf(s,
+  snprintf(s, sizeof(s),
       "Time = %7u ms, Notify = %9u, TEXT = %9u, %s",
       tim - g_Time,
       g_OnNotify,
@@ -883,7 +883,7 @@ void CPanel::SetListViewMode(UInt32 index)
   /*
   DWORD tickCount2 = GetTickCount();
   char s[256];
-  sprintf(s, "SetStyle = %5d",
+  snprintf(s, sizeof(s), "SetStyle = %5d",
       tickCount2 - tickCount1
       );
   OutputDebugStringA(s);

@@ -69,7 +69,7 @@ static void PrintStringA(const char *name, LPCSTR ptr)
   m += name;
   m += ": ";
   char s[32];
-  sprintf(s, "%p", (const void *)ptr);
+  snprintf(s, sizeof(s), "%p", (const void *)ptr);
   m += s;
   if (!MY_IS_INTRESOURCE(ptr))
   {
@@ -87,7 +87,7 @@ static void PrintStringW(const char *name, LPCWSTR ptr)
   m += name;
   m += ": ";
   char s[32];
-  sprintf(s, "%p", (const void *)ptr);
+  snprintf(s, sizeof(s), "%p", (const void *)ptr);
   m += s;
   if (!MY_IS_INTRESOURCE(ptr))
   {
@@ -102,7 +102,7 @@ static void PrintStringW(const char *name, LPCWSTR ptr)
 static void Print_Ptr(const void *p, const char *s)
 {
   char temp[32];
-  sprintf(temp, "%p", (const void *)p);
+  snprintf(temp, sizeof(temp), "%p", (const void *)p);
   AString m;
   m += temp;
   m.Add_Space();
@@ -242,7 +242,7 @@ Z7_COMWF_B CZipContextMenu::Initialize(LPCITEMIDLIST pidlFolder, LPDATAOBJECT da
 
  #endif
 
-  ODS_SPRF_s(sprintf(s, "==== CZipContextMenu::Initialize END _files=%d",
+  ODS_SPRF_s(snprintf(s, sizeof(s), "==== CZipContextMenu::Initialize END _files=%d",
     _fileNames.Size()))
 
   return S_OK;
@@ -591,7 +591,7 @@ Z7_COMWF_B CZipContextMenu::QueryContextMenu(HMENU hMenu, UINT indexMenu,
 
   _commandMap.Clear();
 
-  ODS_SPRF_s(sprintf(s, "QueryContextMenu: index=%u first=%u last=%u flags=%x _files=%u",
+  ODS_SPRF_s(snprintf(s, sizeof(s), "QueryContextMenu: index=%u first=%u last=%u flags=%x _files=%u",
       indexMenu, commandIDFirst, commandIDLast, flags, _fileNames.Size()))
   /*
   for (UInt32 i = 0; i < _fileNames.Size(); i++)
@@ -1148,7 +1148,7 @@ Z7_COMWF_B CZipContextMenu::QueryContextMenu(HMENU hMenu, UINT indexMenu,
   */
   const unsigned numCommands = currentCommandID - commandIDFirst;
   ODS("+ QueryContextMenu() END")
-  ODS_SPRF_s(sprintf(s, "Commands=%u currentCommandID - commandIDFirst = %u",
+  ODS_SPRF_s(snprintf(s, sizeof(s), "Commands=%u currentCommandID - commandIDFirst = %u",
       _commandMap.Size(), numCommands))
   if (_commandMap.Size() != numCommands)
     throw 20190818;
@@ -1161,7 +1161,7 @@ Z7_COMWF_B CZipContextMenu::QueryContextMenu(HMENU hMenu, UINT indexMenu,
   }
   catch(...)
   {
-    ODS_SPRF_s(sprintf(s, "catch() exception: Commands=%u", _commandMap.Size()))
+    ODS_SPRF_s(snprintf(s, sizeof(s), "catch() exception: Commands=%u", _commandMap.Size()))
     if (_commandMap.Size() == 0)
       throw;
   }
@@ -1198,7 +1198,7 @@ Z7_COMWF_B CZipContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO commandInfo)
 
   #ifdef SHOW_DEBUG_CTX_MENU
 
-    ODS_SPRF_s(sprintf(s, ": InvokeCommand: cbSize=%u flags=%x ",
+    ODS_SPRF_s(snprintf(s, sizeof(s), ": InvokeCommand: cbSize=%u flags=%x ",
         (unsigned)commandInfo->cbSize, (unsigned)commandInfo->fMask))
 
     PrintStringA("Verb", commandInfo->lpVerb);
@@ -1243,7 +1243,7 @@ Z7_COMWF_B CZipContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO commandInfo)
       commandOffset = FindVerb(GetUnicodeString(commandInfo->lpVerb));
   }
 
-  ODS_SPRF_s(sprintf(s, "commandOffset=%d", commandOffset))
+  ODS_SPRF_s(snprintf(s, sizeof(s), "commandOffset=%d", commandOffset))
 
   if (/* commandOffset < 0 || */ (unsigned)commandOffset >= _commandMap.Size())
     return E_INVALIDARG;
@@ -1433,7 +1433,7 @@ Z7_COMWF_B CZipContextMenu::GetCommandString(
 
   const int cmdOffset = (int)commandOffset;
   
-  ODS_SPRF_s(sprintf(s, "GetCommandString: cmdOffset=%d uType=%d cchMax = %d",
+  ODS_SPRF_s(snprintf(s, sizeof(s), "GetCommandString: cmdOffset=%d uType=%d cchMax = %d",
       cmdOffset, uType, cchMax))
 
   if ((uType | GCS_UNICODE) == GCS_VALIDATEW)
