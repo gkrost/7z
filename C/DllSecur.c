@@ -35,18 +35,35 @@ static const char * const g_Dlls =
   #endif
   DELIM;
 
-#endif
+typedef LONG (WINAPI *Func_RtlGetVersion)(OSVERSIONINFOW *);
 
-#ifdef __clang__
-  #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-#if defined (_MSC_VER) && _MSC_VER >= 1900
-// sysinfoapi.h: kit10: GetVersion was declared deprecated
-#pragma warning(disable : 4996)
+/* Returns TRUE if the OS major version is NOT 6 (i.e., not Vista/7/8/8.1) */
+static BOOL IsNonVista6Family(void)
+{
+  HMODULE hMod;
+  Func_RtlGetVersion func;
+  OSVERSIONINFOW vi;
+  
+  hMod = GetModuleHandleW(L"ntdll.dll");
+  if (!hMod)
+    return TRUE; /* Assume non-Vista if we can't check */
+  
+  func = (Func_RtlGetVersion)(void *)(ptrdiff_t)GetProcAddress(hMod, "RtlGetVersion");
+  if (!func)
+    return TRUE; /* Assume non-Vista if we can't check */
+  
+  vi.dwOSVersionInfoSize = sizeof(vi);
+  if (func(&vi) != 0)
+    return TRUE; /* Assume non-Vista if call fails */
+  
+  /* Return TRUE if major version is NOT 6 (not Vista/7/8/8.1) */
+  return vi.dwMajorVersion != 6;
+}
+
 #endif
 
 #define IF_NON_VISTA_SET_DLL_DIRS_AND_RETURN \
-    if ((UInt16)GetVersion() != 6) { \
+    if (IsNonVista6Family()) { \
       const \
        Func_SetDefaultDllDirectories setDllDirs = \
       (Func_SetDefaultDllDirectories) Z7_CAST_FUNC_C GetProcAddress(GetModuleHandle(TEXT("kernel32.dll")), \
