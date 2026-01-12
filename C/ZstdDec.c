@@ -82,11 +82,8 @@ CInBufPair;
    || (defined(__GNUC__) && (__GNUC__ >= 6))
     // disable for debug:
     #define Z7_ZSTD_DEC_USE_BSR
-  #elif defined(_MSC_VER) && (_MSC_VER >= 1300)
-    // #if defined(MY_CPU_ARM_OR_ARM64)
-    #if (_MSC_VER >= 1600)
-      #include <intrin.h>
-    #endif
+  #elif defined(_MSC_VER)
+    #include <intrin.h>
     // disable for debug:
     #define Z7_ZSTD_DEC_USE_BSR
   #endif
@@ -839,8 +836,7 @@ void Huf_Build(Byte * const table,
 
 
 #ifndef Z7_ZSTD_DEC_USE_HUF_STREAM1_ALWAYS
-#if defined(MY_CPU_AMD64) && defined(_MSC_VER) && _MSC_VER == 1400 \
-  || !defined(MY_CPU_X86_OR_AMD64) \
+#if !defined(MY_CPU_X86_OR_AMD64) \
   // || 1 == 1 /* for debug : to force STREAM4_PRELOAD mode */
   // we need big number (>=16) of registers for PRELOAD4
   #define Z7_ZSTD_DEC_USE_HUF_STREAM4_PRELOAD4
@@ -1428,7 +1424,7 @@ static void ZstdDec1_Init(CZstdDec1 *p)
   #if defined(MY_CPU_AMD64)
     #define Z7_ZSTD_DEC_USE_SSE2
   #elif defined(MY_CPU_X86)
-    #if defined(_MSC_VER) && _MSC_VER >= 1300 && defined(_M_IX86_FP) && (_M_IX86_FP >= 2) \
+    #if defined(_MSC_VER) && defined(_M_IX86_FP) && (_M_IX86_FP >= 2) \
       || defined(__SSE2__) \
       // || 1 == 1  // for debug only
       #define Z7_ZSTD_DEC_USE_SSE2
