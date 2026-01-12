@@ -718,6 +718,9 @@ BoolInt CPU_IsSupported_AVX2(void)
   }
 }
 
+// TODO: AVX512 support - function ready but disabled pending further testing
+// This function can be enabled by changing #if 0 to #if 1 when AVX512 support is needed.
+// See also Blake2s.c for AVX512 usage.
 #if 0
 BoolInt CPU_IsSupported_AVX512F_AVX512VL(void)
 {

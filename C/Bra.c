@@ -533,6 +533,8 @@ Byte * Z7_BRANCH_CONV_ENC(RISCV)(Byte *p, SizeT size, UInt32 pc)
         BR_CONVERT_VAL_ENC(v)
         // ((v & 1) == 0)
         // v: bits [1 : 20] contain offset bits
+        // Alternative unaligned load approach (disabled, using aligned approach below).
+        // Enable RISCV_USE_UNALIGNED_LOAD and change #if 0 to #if 1 if needed.
 #if 0 && defined(RISCV_USE_UNALIGNED_LOAD)
         a &= 0xfff;
         a |= ((UInt32)(v << 23))
@@ -540,11 +542,8 @@ Byte * Z7_BRANCH_CONV_ENC(RISCV)(Byte *p, SizeT size, UInt32 pc)
           |  ((UInt32)(v >>  5) & ((UInt32)0xf0 << 8));
         RISCV_SET_UI32(p, a)
 #else // aligned
-#if 0
-        SetUi16a(p, (UInt16)(((v >> 5) & 0xf000) | (a & 0xfff)))
-#else
+        // Using aligned byte-by-byte approach for better compatibility.
         p[1] = (Byte)(((v >> 13) & 0xf0) | ((a >> 8) & 0xf));
-#endif
 
 #if 1 && defined(Z7_CPU_FAST_BSWAP_SUPPORTED) && defined(MY_CPU_LE)
         v <<= 15;
@@ -634,6 +633,8 @@ Byte * Z7_BRANCH_CONV_DEC(RISCV)(Byte *p, SizeT size, UInt32 pc)
       }
       {
         const UInt32 a_old = (a + (0xef - RISCV_DELTA_7F)) & 0xfff;
+        // Using optimized byte-swap approach when available, otherwise byte-by-byte.
+        // Unaligned approach disabled for compatibility. Change #if 0 to #if 1 to enable.
 #if 0 // unaligned
         a = GetUi32(p);
         v = (UInt32)(a >> 23) & ((UInt32)0xff << 1)

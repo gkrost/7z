@@ -88,6 +88,9 @@ BoolInt Sha512_SetFunction(CSha512 *p, unsigned algo)
 
 /* define it for speed optimization */
 
+// Size vs speed optimization trade-off: 
+// Set to 1 (change #if 0 to #if 1) for smaller code size, 0 for better speed.
+// Currently optimized for speed with STEP_PRE=2, STEP_MAIN=4.
 #if 0 // 1 for size optimization
   #define STEP_PRE 1
   #define STEP_MAIN 1
@@ -459,10 +462,12 @@ void Sha512_Final(CSha512 *p, Byte *digest, unsigned digestSize)
 #define PRF(x)
 #endif
 
-#if 0 || !defined(_MSC_VER) // 1 || : for debug LONGJMP mode
+// Use LONGJMP for non-MSVC compilers or for debugging.
 // MINGW doesn't support __try. So we use signal() / longjmp().
 // Note: signal() / longjmp() probably is not thread-safe.
 // So we must call Sha512Prepare() from main thread at program start.
+// To force LONGJMP mode on MSVC for debugging, change #if 0 to #if 1.
+#if 0 || !defined(_MSC_VER) // 1 || : for debug LONGJMP mode
 #ifndef Z7_SHA512_USE_LONGJMP
 #define Z7_SHA512_USE_LONGJMP
 #endif

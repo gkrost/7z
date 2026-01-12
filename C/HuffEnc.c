@@ -82,6 +82,8 @@ void Huffman_Generate(const UInt32 *freqs, UInt32 *p, Byte *lens, unsigned numSy
       }
       while (fp != freqs);
     }
+    // Debug: Print sum and symbol counters (disabled)
+    // Enable by changing #if 0 to #if 1 if debugging Huffman encoding
 #if 0
     printf("\nsum=%8u numSymbols =%3u ctrs:", sum, numSymbols);
     {
@@ -105,10 +107,9 @@ void Huffman_Generate(const UInt32 *freqs, UInt32 *p, Byte *lens, unsigned numSy
       do
       {
         const UInt32 f = freqs[i];
-#if 0
-        if (f == 0) lens[i] = 0; else
-#endif
-          p[CTR_ITEM_FOR_FREQ(f)++] = i | (f << NUM_BITS);
+        // Note: Zero frequency symbols are handled by the loop logic
+        // Disabled check: if (f == 0) lens[i] = 0; else
+        p[CTR_ITEM_FOR_FREQ(f)++] = i | (f << NUM_BITS);
       }
       while (++i != numSymbols);
     }

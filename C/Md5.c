@@ -22,10 +22,11 @@ void Md5_Init(CMd5 *p)
   p->state[3] = 0x10325476;
 }
 
+// Optional optimization for Big-endian processors or processors without unaligned access.
+// This is intended to reduce the number of complex LE32 memory readings from 64 to 16.
+// However, most modern compilers generate efficient code without this optimization.
+// Enable by changing #if 0 to #if 1 if needed for specific Big-endian platforms.
 #if 0 && !defined(MY_CPU_LE_UNALIGN)
-// optional optimization for Big-endian processors or processors without unaligned access:
-// it is intended to reduce the number of complex LE32 memory reading from 64 to 16.
-// But some compilers (sparc, armt) are better without this optimization.
 #define Z7_MD5_USE_DATA32_ARRAY
 #endif
 

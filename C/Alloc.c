@@ -15,13 +15,12 @@
   #define Z7_USE_DYN_GetLargePageMinimum
 #endif
 
-// for debug:
-#if 0
-#if defined(__CHERI__) && defined(__SIZEOF_POINTER__) && (__SIZEOF_POINTER__ == 16)
-// #pragma message("=== Z7_ALLOC_NO_OFFSET_ALLOCATOR === ")
-#define Z7_ALLOC_NO_OFFSET_ALLOCATOR
-#endif
-#endif
+// Optional: Enable for CHERI (Capability Hardware Enhanced RISC Instructions) platform
+// with 128-bit pointers to use alternative allocator without offset calculations.
+// This can be manually enabled if needed for CHERI compatibility testing.
+// #if defined(__CHERI__) && defined(__SIZEOF_POINTER__) && (__SIZEOF_POINTER__ == 16)
+// #define Z7_ALLOC_NO_OFFSET_ALLOCATOR
+// #endif
 
 // #define SZ_ALLOC_DEBUG
 /* #define SZ_ALLOC_DEBUG */
@@ -352,6 +351,9 @@ typedef
   #endif
     MY_uintptr_t;
 
+// Alternative pointer alignment for 128-bit pointers (CHERI architecture).
+// Currently disabled - uses standard approach below.
+// Change #if 0 to #if 1 to enable CHERI-specific pointer alignment.
 #if 0 \
     || (defined(__CHERI__) \
     || defined(__SIZEOF_POINTER__) && (__SIZEOF_POINTER__ > 8))
@@ -472,24 +474,6 @@ const ISzAlloc g_AlignedAlloc = { SzAlignedAlloc, SzAlignedFree };
 #endif
 
 
-#if 0
-#ifndef Z7_ALLOC_NO_OFFSET_ALLOCATOR
-#include <stdio.h>
-static void PrintPtr(const char *s, const void *p)
-{
-  const Byte *p2 = (const Byte *)&p;
-  unsigned i;
-  printf("%s %p ", s, p);
-  for (i = sizeof(p); i != 0;)
-  {
-    i--;
-    printf("%02x", p2[i]);
-  }
-  printf("\n");
-}
-#endif
-#endif
-
 
 static void *AlignOffsetAlloc_Alloc(ISzAllocPtr pp, size_t size)
 {
@@ -524,12 +508,6 @@ static void *AlignOffsetAlloc_Alloc(ISzAllocPtr pp, size_t size)
 
   pAligned = (char *)MY_ALIGN_PTR_DOWN((char *)adr +
       alignSize - p->offset + extra + ADJUST_ALLOC_SIZE, alignSize) + p->offset;
-
-#if 0
-  printf("\nalignSize = %6x, offset=%6x, size=%8x \n", (unsigned)alignSize, (unsigned)p->offset, (unsigned)size);
-  PrintPtr("base", adr);
-  PrintPtr("alig", pAligned);
-#endif
 
 
 

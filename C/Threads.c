@@ -93,7 +93,9 @@ typedef BOOL (WINAPI *Func_GetProcessGroupAffinity)(
 
 Z7_DIAGNOSTIC_IGNORE_CAST_FUNCTION
 
-#if 0
+// Debug code for testing thread group affinity on Windows.
+// Enable Z7_DEBUG_THREAD_AFFINITY to print process affinity information.
+#ifdef Z7_DEBUG_THREAD_AFFINITY
 #include <stdio.h>
 #define PRF(x) x
 /*
@@ -167,15 +169,15 @@ WRes Thread_Create(CThread *p, THREAD_FUNC_TYPE func, LPVOID param)
   unsigned threadId;
   *p = (HANDLE)(_beginthreadex(NULL, 0, func, param, 0, &threadId));
 
-#if 0 // 1 : for debug
+#ifdef Z7_DEBUG_THREAD_AFFINITY
+  // Debug: Set thread affinity mask for testing
   {
       DWORD_PTR prevMask;
       DWORD_PTR affinity = 1 << 0;
       prevMask = SetThreadAffinityMask(*p, (DWORD_PTR)affinity);
       prevMask = prevMask;
   }
-#endif
-#if 0 // 1 : for debug
+  // Debug: Print thread group affinity information
   {
       /* win10: new thread will be created in same group that is assigned to parent thread
                 but affinity mask will contain all allowed threads of that group,

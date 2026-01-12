@@ -515,8 +515,9 @@ problem-4 : performace:
 
 #if defined(MY_CPU_LE_UNALIGN) && defined(Z7_CPU_FAST_BSWAP_SUPPORTED)
 
+// Using 32-bit byte swap for better performance on x86-msvc.
+// Z7_BSWAP16 can be slower. Change #if 0 to #if 1 to use 16-bit byte swap.
 #if 0
-// Z7_BSWAP16 can be slow for x86-msvc
 #define GetBe16_to32(p)  (Z7_BSWAP16 (*(const UInt16 *)(const void *)(p)))
 #else
 #define GetBe16_to32(p)  (Z7_BSWAP32 (*(const UInt16 *)(const void *)(p)) >> 16)

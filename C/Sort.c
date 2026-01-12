@@ -72,6 +72,9 @@ if !defined(USE_PREFETCH_FOR_ALIGNED_ARRAY)
 */
   #define USE_PREFETCH_FOR_ALIGNED_ARRAY
 
+// Prefetch offset calculation: using (k << (PREFETCH_LEVEL + 1))
+// Alternative x86 optimization disabled: (s << PREFETCH_LEVEL) with lea instruction
+// Change #if 0 to #if 1 to enable x86-specific lea optimization
 // s == k * 2
 #if 0 && PREFETCH_LEVEL <= 3 && defined(MY_CPU_X86_OR_AMD64)
   // x86 supports (lea r1*8+offset)
