@@ -352,8 +352,10 @@ typedef
     MY_uintptr_t;
 
 // Alternative pointer alignment for 128-bit pointers (CHERI architecture).
-// Currently disabled - uses standard approach below. Enable if CHERI support needed.
-#if (defined(__CHERI__) \
+// Currently disabled - uses standard approach below.
+// Change #if 0 to #if 1 to enable CHERI-specific pointer alignment.
+#if 0 \
+    || (defined(__CHERI__) \
     || defined(__SIZEOF_POINTER__) && (__SIZEOF_POINTER__ > 8))
 // for 128-bit pointers (cheri):
 #define MY_ALIGN_PTR_DOWN(p, align)  \

@@ -277,6 +277,8 @@ static const UInt32 k_Blake2s_IV[8] =
 #define ROUNDS_LOOP_2(mac) \
   { unsigned r; for (r = 0; r < BLAKE2S_NUM_ROUNDS; r += 2) { mac(r) mac(r + 1) } }
 */
+// Enable loop unrolling for non-vector builds (better performance on scalar code)
+// The '1' here means always enabled unless Z7_BLAKE2S_USE_VECTORS is defined
 #if 1 && !defined(Z7_BLAKE2S_USE_VECTORS)
 #define ROUNDS_LOOP_UNROLLED(m) \
   { m(0) m(1) m(2) m(3) m(4) m(5) m(6) m(7) m(8) m(9) }
@@ -450,6 +452,8 @@ IPC(TP) ports:
 // So it can be better to use _mm_add_epi32()/"paddd" (TP=2 for bdw-nhm) instead of "xorps".
 // But "orps" is fast for modern cpus (skl+).
 // So we are default with "or" version:
+// Performance: Use OR for modern CPUs (Skylake+), ADD for older CPUs if "xorps" is slow.
+// Change #if 0 to #if 1 for minor optimization on old CPUs (pre-Skylake) where xorps is slow.
 #if 0 && defined(Z7_MSC_VER_ORIGINAL) && Z7_MSC_VER_ORIGINAL > 1937
   // minor optimization for some old cpus, if "xorps" is slow.
   #define MM128_EPI32_OR_or_ADD  _mm_add_epi32
@@ -2604,6 +2608,9 @@ void z7_Black2sp_Prepare(void)
 #if defined(MY_CPU_X86_OR_AMD64)
     
     #if defined(Z7_BLAKE2S_USE_AVX512_ALWAYS)
+      // AVX512 runtime CPU check disabled when Z7_BLAKE2S_USE_AVX512_ALWAYS is defined.
+      // Change #if 0 to #if 1 to enable runtime CPU check for AVX512 support
+      // even when Z7_BLAKE2S_USE_AVX512_ALWAYS is defined (adds safety check).
       #if 0
         if (CPU_IsSupported_AVX512F_AVX512VL())
       #endif
