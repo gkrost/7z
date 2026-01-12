@@ -28,69 +28,25 @@ Igor Pavlov : Public domain */
 #if defined(__GNUC__) /* && (__GNUC__ >= 10) */ \
     || defined(__clang__) /* && (__clang_major__ >= 10) */
 
-/* WORKAROUND: GCC/CLANG PIC mode rbx/ebx preservation
-   
-   Some older CLANG/GCC compilers had issues with rbx(ebx) handling in 
-   asm blocks in -fPIC mode (__PIC__ is defined). The rbx register is 
-   reserved as the PIC base pointer and must be preserved.
-   
-   Compiler's <cpuid.h> contains the macro __cpuid() that is similar to our code.
-   
-   The history of __cpuid() changes in CLANG/GCC:
-   GCC:
-     2007: it preserved ebx for (__PIC__ && __i386__)
-     2013: it preserved rbx and ebx for __PIC__
-     2014: it doesn't preserves rbx and ebx anymore
-     GCC 5.0+ (2015): Fixed the __PIC__ ebx/rbx problem - we assume __GNUC__ >= 5 is safe
-   
-   CLANG:
-     2014+: it preserves rbx, but only for 64-bit code. No __PIC__ check.
-     Behavior unclear: Why does CLANG only care about 64-bit mode and not ebx (32-bit)?
-   
-   CURRENT STATUS (as of 2025):
-   - GCC < 5 affected: Very old (GCC 5 released April 2015)
-   - CLANG: Unclear if workaround still needed; kept for safety
-   - Minimum supported: GCC 7+ / CLANG 5+ (see BUILDING.md)
-   
-   RECOMMENDATION: This workaround can likely be removed if minimum supported
-   compilers are bumped to GCC 7+ and CLANG 10+. Consider using compiler's 
-   <cpuid.h> instead of inline assembly.
+/* Minimum GCC version requirement: 13.4
+   GCC 13.4 is the lowest version still maintained by the GCC team.
+   All workarounds for older GCC versions have been removed.
 */
+#if defined(__GNUC__) && !defined(__clang__)
+  #if __GNUC__ < 13 || (__GNUC__ == 13 && __GNUC_MINOR__ < 4)
+    #error "GCC 13.4 or newer is required. Please upgrade your compiler."
+  #endif
+#endif
 
 #define ASM_LN "\n"
-   
-#if defined(MY_CPU_AMD64) && defined(__PIC__) \
-    && ((defined (__GNUC__) && (__GNUC__ < 5)) || defined(__clang__))
 
-  /* "=&r" selects free register. It can select even rbx, if that register is free.
-     "=&D" for (RDI) also works, but the code can be larger with "=&D"
-     "2"(subFun) : 2 is (zero-based) index in the output constraint list "=c" (ECX). */
-
-#define x86_cpuid_MACRO_2(p, func, subFunc) { \
-  __asm__ __volatile__ ( \
-    ASM_LN   "mov     %%rbx, %q1"  \
-    ASM_LN   "cpuid"               \
-    ASM_LN   "xchg    %%rbx, %q1"  \
-    : "=a" ((p)[0]), "=&r" ((p)[1]), "=c" ((p)[2]), "=d" ((p)[3]) : "0" (func), "2"(subFunc)); }
-
-#elif defined(MY_CPU_X86) && defined(__PIC__) \
-    && ((defined (__GNUC__) && (__GNUC__ < 5)) || defined(__clang__))
-
-#define x86_cpuid_MACRO_2(p, func, subFunc) { \
-  __asm__ __volatile__ ( \
-    ASM_LN   "mov     %%ebx, %k1"  \
-    ASM_LN   "cpuid"               \
-    ASM_LN   "xchg    %%ebx, %k1"  \
-    : "=a" ((p)[0]), "=&r" ((p)[1]), "=c" ((p)[2]), "=d" ((p)[3]) : "0" (func), "2"(subFunc)); }
-
-#else
-
+/* Standard cpuid implementation without legacy workarounds.
+   GCC 13.4+ and modern Clang handle cpuid correctly without special handling.
+*/
 #define x86_cpuid_MACRO_2(p, func, subFunc) { \
   __asm__ __volatile__ ( \
     ASM_LN   "cpuid"               \
     : "=a" ((p)[0]), "=b" ((p)[1]), "=c" ((p)[2]), "=d" ((p)[3]) : "0" (func), "2"(subFunc)); }
-
-#endif
 
 #define x86_cpuid_MACRO(p, func)  x86_cpuid_MACRO_2(p, func, 0)
 

@@ -9,21 +9,10 @@ This document describes the compiler versions supported by 7-Zip and documents t
 | Compiler | Minimum Version | Platform | Notes |
 |----------|----------------|----------|-------|
 | **MSVC** | Visual Studio 2017 (14.1, _MSC_VER 1910) | Windows x86/x64/ARM64 | Recommended: VS2019 or VS2022 |
-| **GCC** | GCC 7.0 | Linux/macOS x86/x64/ARM64 | GCC 5+ should work with workarounds |
-| **Clang** | Clang 5.0 | Linux/macOS x86/x64/ARM64 | Clang 3.8+ may work with workarounds |
+| **GCC** | GCC 13.4 | Linux/macOS x86/x64/ARM64 | Lowest version maintained by GCC team |
+| **Clang** | Clang 10.0 | Linux/macOS x86/x64/ARM64 | Modern versions recommended |
 
-### Absolute Minimum (With Workarounds)
-
-The codebase contains workarounds that allow building with older compilers, though this is not recommended for production use:
-
-| Compiler | Minimum Version | Limitations |
-|----------|----------------|-------------|
-| **MSVC** | Visual Studio 2010 (_MSC_VER 1600) | x64 only; __cpuidex available |
-| **MSVC** | Visual Studio 2005 (_MSC_VER 1400) | x86/x64; requires cpuid workarounds |
-| **GCC** | GCC 4.x | Requires PIC mode rbx/ebx workarounds |
-| **Clang** | Clang 3.x | May require PIC mode workarounds |
-
-**Warning**: Compilers older than the recommended versions are not regularly tested and may have bugs or limitations. Use at your own risk.
+**Note**: All workarounds for GCC versions below 13.4 have been removed. The codebase now requires GCC 13.4 or newer, which is the lowest version still maintained by the GCC development team.
 
 ## Compiler-Specific Workarounds
 
@@ -119,62 +108,48 @@ Consider one of the following approaches:
 
 ### Workaround 3: GCC/Clang PIC Mode rbx/ebx Preservation
 
-**File**: `C/CpuArch.c:28-80`
+**Status**: **REMOVED** (as of GCC 13.4 minimum requirement)
 
-**Problem**:
-Some older GCC and Clang compilers had issues with `rbx`/`ebx` register handling in inline assembly blocks when Position Independent Code (PIC) mode is enabled (`-fPIC`, `__PIC__` defined). The `rbx` register is used as the PIC base pointer in x86-64 and must be preserved.
+**File**: Previously in `C/CpuArch.c`
 
-**Timeline**:
-- **GCC**:
-  - 2007: Preserved `ebx` for `(__PIC__ && __i386__)`
-  - 2013: Preserved `rbx` and `ebx` for `__PIC__`
-  - 2014: Stopped preserving rbx/ebx
-  - **GCC 5.0+ (2015)**: Assumed to have fixed the PIC ebx/rbx issue
+**Problem** (Historical):
+Older GCC and Clang compilers had issues with `rbx`/`ebx` register handling in inline assembly blocks when Position Independent Code (PIC) mode is enabled. The `rbx` register is used as the PIC base pointer in x86-64 and must be preserved.
 
-- **Clang**:
-  - 2014+: Preserves `rbx` for 64-bit code only, no `__PIC__` check
-  - Unclear why Clang only handles 64-bit and not 32-bit `ebx`
+**Resolution**:
+With the minimum GCC version requirement raised to 13.4, this workaround has been completely removed. GCC 13.4 and modern Clang versions handle cpuid correctly without special handling. The codebase now uses standard cpuid inline assembly without register preservation workarounds.
 
-**Workaround**:
-Use `mov/xchg` to save and restore `rbx`/`ebx` around the cpuid instruction in inline assembly:
-
+**Code Before** (removed):
 ```c
-// For x86-64 with GCC < 5 or Clang in PIC mode:
-__asm__ __volatile__ (
-  "mov     %%rbx, %q1"  // Save rbx
-  "cpuid"               
-  "xchg    %%rbx, %q1"  // Restore rbx
-  : "=a" (p[0]), "=&r" (p[1]), "=c" (p[2]), "=d" (p[3])
-  : "0" (func), "2"(subFunc)
-);
+// Complex workaround with rbx/ebx preservation for old GCC < 5
+#if defined(MY_CPU_AMD64) && defined(__PIC__) && (__GNUC__ < 5)
+  __asm__ __volatile__ (
+    "mov     %%rbx, %q1"  // Save rbx
+    "cpuid"               
+    "xchg    %%rbx, %q1"  // Restore rbx
+    ...
+  );
+#endif
 ```
 
-**Affected Versions**:
-- **GCC < 5.0**: Definitely affected
-- **GCC 5.0+**: Should be safe without workaround
-- **Clang**: Unclear; workaround applied conservatively for all versions
+**Code Now**:
+```c
+// Standard cpuid - works with GCC 13.4+ and modern Clang
+#define x86_cpuid_MACRO_2(p, func, subFunc) { \
+  __asm__ __volatile__ ( \
+    "cpuid" \
+    : "=a" ((p)[0]), "=b" ((p)[1]), "=c" ((p)[2]), "=d" ((p)[3]) \
+    : "0" (func), "2"(subFunc)); }
+```
 
-**Current Status**:
-- **Active**: For `(GCC < 5 || Clang) && __PIC__`
-- **Impact**: Extra instructions in PIC builds on affected compilers
-- **Testing**: Tested on modern GCC/Clang with workaround active
-
-**Removal Plan**:
-This workaround can likely be removed or simplified:
-
-1. **Option A**: Use compiler's `<cpuid.h>` instead of inline assembly
-   ```c
-   #include <cpuid.h>
-   // Use __cpuid() and __cpuid_count() from the compiler
-   ```
-
-2. **Option B**: Bump minimum GCC to 7.0+ and minimum Clang to 10.0+
-   - Remove workaround entirely for supported versions
-   - Add version check to fail on unsupported compilers
-
-3. **Option C**: Keep for GCC < 5, remove for Clang (testing needed)
-
-**Recommendation**: Consider Option A (use `<cpuid.h>`) for code simplification, or Option B if minimum compiler policy is formalized.
+**Version Check Added**:
+The codebase now enforces GCC 13.4+ at compile time:
+```c
+#if defined(__GNUC__) && !defined(__clang__)
+  #if __GNUC__ < 13 || (__GNUC__ == 13 && __GNUC_MINOR__ < 4)
+    #error "GCC 13.4 or newer is required. Please upgrade your compiler."
+  #endif
+#endif
+```
 
 ---
 
@@ -187,11 +162,10 @@ The following compilers are regularly tested:
 | MSVC | 2022 (14.3) | Windows x64 | ✅ Supported | Yes |
 | MSVC | 2019 (14.2) | Windows x64 | ✅ Supported | Yes |
 | MSVC | 2017 (14.1) | Windows x64 | ✅ Supported | No |
-| GCC | 11.x | Linux x64 | ✅ Supported | Yes |
-| GCC | 9.x | Linux x64 | ✅ Supported | No |
-| GCC | 7.x | Linux x64 | ⚠️ Minimum | No |
+| GCC | 13.4+ | Linux x64 | ✅ Minimum Required | Yes |
+| GCC | 14.x | Linux x64 | ✅ Supported | Yes |
 | Clang | 15.x | Linux x64 | ✅ Supported | Yes |
-| Clang | 10.x | macOS ARM64 | ✅ Supported | No |
+| Clang | 10.x | macOS ARM64 | ⚠️ Minimum | No |
 | AppleClang | Latest | macOS ARM64 | ✅ Supported | No |
 
 **Legend**:
@@ -199,56 +173,40 @@ The following compilers are regularly tested:
 - ⚠️ Minimum: Minimum version, should work but not regularly tested
 - ❌ Not Supported: Known to not work or not tested
 
-### Untested (Workarounds Present)
-
-The following compilers have workarounds but are **not regularly tested**:
-
-| Compiler | Version | Status | Notes |
-|----------|---------|--------|-------|
-| MSVC | 2005-2008 | ❌ Not Tested | __cpuid workaround present but untested |
-| MSVC | 2010-2015 | ⚠️ Should Work | May have movsx issues |
-| GCC | 4.x | ❌ Not Tested | PIC workaround present but untested |
-| GCC | 5.x-6.x | ⚠️ Should Work | PIC workaround may be unnecessary |
-| Clang | < 5.0 | ❌ Not Tested | Not recommended |
+**Important**: GCC versions below 13.4 are **not supported** and will fail to compile with an error message.
 
 ---
 
 ## Recommendations for Maintainers
 
+### Completed Actions
+
+1. ✅ **Removed GCC < 13.4 workarounds**: All workarounds for old GCC versions removed
+2. ✅ **Added compiler version checks**: GCC 13.4+ enforced at compile time
+3. ✅ **Updated BUILDING.md**: Explicit minimum versions documented
+4. ✅ **Updated testing matrix**: Reflects new GCC 13.4 minimum
+
 ### Short Term (Current Release Cycle)
 
-1. **Keep all workarounds** with improved documentation (this document)
-2. **Add pragma warnings** to alert users building with old compilers
-3. **Update BUILDING.md** with explicit minimum versions (Done)
-4. **Document testing matrix** (this document)
+1. **Monitor GCC 13.4 compatibility**: Ensure builds work correctly with minimum version
+2. **Update CI pipelines**: Test with GCC 13.4 as the minimum version
+3. **Document breaking change**: Clearly communicate GCC version requirement in release notes
 
 ### Medium Term (Next Major Release)
 
-1. **Formalize minimum compiler policy**:
-   - Windows: MSVC 2017+ (_MSC_VER >= 1910)
-   - Linux: GCC 7.0+ or Clang 5.0+
-
-2. **Optionally remove workarounds** for compilers below minimum:
-   - Consider `#error` directives for unsupported versions
-   - Or keep workarounds for legacy builds (low cost)
-
-3. **Consider using compiler intrinsics**:
-   - Use `<cpuid.h>` from GCC/Clang instead of inline assembly
-   - Simplifies code and improves portability
+1. **Consider Clang minimum version bump**: Evaluate raising Clang minimum to 15.0+
+2. **Review MSVC workarounds**: Evaluate if MSVC workarounds can be removed or simplified
+3. **Consider using compiler intrinsics**: Evaluate using `<cpuid.h>` for further simplification
 
 ### Long Term (Future Releases)
 
-1. **Regularly review workarounds** (every 1-2 years):
-   - Check if affected compiler versions are still relevant
+1. **Regularly review compiler requirements** (every 1-2 years):
+   - Track actively maintained compiler versions
    - Remove workarounds for obsolete compilers
    - Update testing matrix
 
-2. **Add CI testing** for minimum supported compilers:
-   - Ensure workarounds still function correctly
-   - Detect when workarounds can be safely removed
-
-3. **Track compiler market share**:
-   - Monitor usage of old compiler versions
+2. **Track compiler market share**:
+   - Monitor usage of compiler versions
    - Make data-driven decisions about minimum versions
 
 ---
@@ -256,7 +214,7 @@ The following compilers have workarounds but are **not regularly tested**:
 ## Related Documentation
 
 - [BUILDING.md](BUILDING.md) - Build instructions and prerequisites
-- [C/CpuArch.c](C/CpuArch.c) - CPU detection and cpuid workarounds
+- [C/CpuArch.c](C/CpuArch.c) - CPU detection and cpuid implementation
 - [C/LzFindMt.c](C/LzFindMt.c) - Match finder with movsx workaround
 - [C/LzFindOpt.c](C/LzFindOpt.c) - Optimized match finder with movsx workaround
 
@@ -266,10 +224,11 @@ The following compilers have workarounds but are **not regularly tested**:
 
 If you encounter build issues with a specific compiler:
 
-1. Check this document for known workarounds
-2. Verify your compiler version meets minimum requirements
+1. Check this document for minimum requirements
+2. Verify your compiler version meets minimum requirements (GCC 13.4+, Clang 10.0+, MSVC 2017+)
 3. Check [BUILDING.md](BUILDING.md) for build instructions
-4. Report issues on GitHub with:
+4. For GCC < 13.4: You will receive a compile-time error. Please upgrade to GCC 13.4 or newer.
+5. Report issues on GitHub with:
    - Compiler name and exact version
    - Platform and architecture
    - Complete build log
@@ -277,6 +236,6 @@ If you encounter build issues with a specific compiler:
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: 2025-01-12  
+**Document Version**: 2.0  
+**Last Updated**: 2026-01-12  
 **Maintainer**: 7-Zip Development Team

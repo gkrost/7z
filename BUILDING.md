@@ -28,10 +28,10 @@ This guide provides detailed instructions for building 7-Zip from source on diff
 
 ### Linux/macOS
 
-- **GCC 7 or later** or **Clang 5 or later**
-  - **Minimum GCC version**: 7.0 (GCC 5+ may work with workarounds)
-  - **Minimum Clang version**: 5.0 (Clang 3.8+ may work with workarounds)
-  - See [COMPILER_REQUIREMENTS.md](COMPILER_REQUIREMENTS.md) for detailed version info and workarounds
+- **GCC 13.4 or later** or **Clang 10 or later**
+  - **Minimum GCC version**: 13.4 (lowest version maintained by GCC team)
+  - **Minimum Clang version**: 10.0
+  - See [COMPILER_REQUIREMENTS.md](COMPILER_REQUIREMENTS.md) for detailed version info
 - **Make** utility
 - **Optional**: Assembler for optimized builds
   - [Asmc Macro Assembler](https://github.com/nidud/asmc) (recommended for x86/x64)
