@@ -6,6 +6,9 @@
 
 #include "7zTypes.h"
 
+// These includes are now handled in Blake2s.c implementation file.
+// Moved from header to avoid unnecessary header dependencies.
+// If needed in header, enable by changing #if 0 to #if 1.
 #if 0
 #include "Compiler.h"
 #include "CpuArch.h"
@@ -53,6 +56,9 @@ typedef struct
 {
   union
   {
+    // SSE/AVX vector types for alignment are not needed here.
+    // The _pad_align_ptr and _pad_align_32bit arrays below provide sufficient alignment.
+    // If needed for specific compiler/platform requirements, enable by changing #if 0 to #if 1.
 #if 0
 #if defined(MY_CPU_X86_OR_AMD64)
 #if defined(__SSE2__) \

@@ -260,22 +260,9 @@ static const UInt32 k_Blake2s_IV[8] =
 #endif // Z7_BLAKE2S_USE_VECTORS
 
 
-#if 0
-static void PrintState(const UInt32 *s, unsigned num)
-{
-  unsigned i;
-  printf("\n");
-  for (i = 0; i < num; i++)
-    printf(" %08x", (unsigned)s[i]);
-}
-static void PrintStates2(const UInt32 *s, unsigned x, unsigned y)
-{
-  unsigned i;
-  for (i = 0; i < y; i++)
-    PrintState(s + i * x, x);
-  printf("\n");
-}
-#endif
+// Debug print functions removed. Re-add if needed for debugging:
+// static void PrintState(const UInt32 *s, unsigned num) - prints hash state
+// static void PrintStates2(const UInt32 *s, unsigned x, unsigned y) - prints multiple states
 
 
 #define REP8_MACRO(m)  { m(0) m(1) m(2) m(3) m(4) m(5) m(6) m(7) }
@@ -290,7 +277,7 @@ static void PrintStates2(const UInt32 *s, unsigned x, unsigned y)
 #define ROUNDS_LOOP_2(mac) \
   { unsigned r; for (r = 0; r < BLAKE2S_NUM_ROUNDS; r += 2) { mac(r) mac(r + 1) } }
 */
-#if 0 || 1 && !defined(Z7_BLAKE2S_USE_VECTORS)
+#if 1 && !defined(Z7_BLAKE2S_USE_VECTORS)
 #define ROUNDS_LOOP_UNROLLED(m) \
   { m(0) m(1) m(2) m(3) m(4) m(5) m(6) m(7) m(8) m(9) }
 #endif
@@ -327,9 +314,10 @@ static const Byte k_Blake2s_Sigma_4[BLAKE2S_NUM_ROUNDS][16] =
 #ifdef Z7_BLAKE2S_USE_VECTORS
 
 
+  // Alternative: Load IV constants from memory (can be faster for some compilers).
+  // Currently using constant generation for better portability.
+  // To use memory loading, change #if 0 to #if 1.
 #if 0
-  // use loading constants from memory
-  // is faster for some compilers.
   #define KK4(n)  KIV(n), KIV(n), KIV(n), KIV(n)
 MY_ALIGN(64)
 static const UInt32 k_Blake2s_IV_WAY4[]=
@@ -349,6 +337,9 @@ static const UInt32 k_Blake2s_IV_WAY4[]=
 #endif
 
 
+// Alternative: Use _mm_set macros to define constants inline.
+// Currently using array-based constants for better optimization.
+// To use inline constants, change #if 0 to #if 1.
 #if 0
 #define k_r8    _mm_set_epi8(12, 15, 14, 13, 8, 11, 10, 9, 4, 7, 6, 5, 0, 3, 2, 1)
 #define k_r16   _mm_set_epi8(13, 12, 15, 14, 9, 8, 11, 10, 5, 4, 7, 6, 1, 0, 3, 2)
@@ -459,7 +450,7 @@ IPC(TP) ports:
 // So it can be better to use _mm_add_epi32()/"paddd" (TP=2 for bdw-nhm) instead of "xorps".
 // But "orps" is fast for modern cpus (skl+).
 // So we are default with "or" version:
-#if 0 || 0 && defined(Z7_MSC_VER_ORIGINAL) && Z7_MSC_VER_ORIGINAL > 1937
+#if 0 && defined(Z7_MSC_VER_ORIGINAL) && Z7_MSC_VER_ORIGINAL > 1937
   // minor optimization for some old cpus, if "xorps" is slow.
   #define MM128_EPI32_OR_or_ADD  _mm_add_epi32
 #else
@@ -515,7 +506,7 @@ So we can force to "pinsrd" always.
 #ifdef Z7_BLAKE2S_USE_SSE41
   /* _mm_set_epi32() can be more effective for GCC and CLANG
      _mm_insert_epi32()  is more effective for MSVC */
-  #if 0 || 1 && defined(Z7_MSC_VER_ORIGINAL)
+  #if 1 && defined(Z7_MSC_VER_ORIGINAL)
     #define Z7_BLAKE2S_USE_INSERT_INSTRUCTION
   #endif
 #endif // USE_SSE41
@@ -619,7 +610,7 @@ additional operations per 7_op_iter :
 */
 
 static
-#if 0 || 0 && (defined(Z7_BLAKE2S_USE_V128_WAY2) || \
+#if 0 && (defined(Z7_BLAKE2S_USE_V128_WAY2) || \
                defined(Z7_BLAKE2S_USE_V256_WAY2))
   Z7_NO_INLINE
 #else
@@ -929,7 +920,7 @@ static const UInt16 k_Blake2s_Sigma_32[BLAKE2S_NUM_ROUNDS][16] =
 
 // for 32-bit x86 : interleave mode works slower, because of register pressure.
 
-#if 0 || 1 && (defined(MY_CPU_X86) \
+#if 1 && (defined(MY_CPU_X86) \
   || defined(__GNUC__) && !defined(__clang__))
 // non-inteleaved version:
 // is fast for x86 32-bit.
@@ -1562,7 +1553,7 @@ Blake2sp_Compress2_AVX2_Way4(UInt32 *s_items, const Byte *data, const Byte *end)
 #define OP256_9(a)   D_ROT_256_7  (V(a, 1));
 
 
-#if 0 || 1 && defined(MY_CPU_X86)
+#if 1 && defined(MY_CPU_X86)
 
 #define V8_G(a) \
   OP256_0 (a) \
@@ -1727,7 +1718,7 @@ Blake2sp_Compress2_AVX2_Way4(UInt32 *s_items, const Byte *data, const Byte *end)
 #define V8_LOAD_STATE_256_FROM_STRUCT(i) \
       v[i] = LOAD_256_FROM_STRUCT(s_items + (i) * 8);
 
-#if 0 || 0 && defined(MY_CPU_X86)
+#if 0 && defined(MY_CPU_X86)
 #define Z7_BLAKE2S_AVX2_FAST_USE_STRUCT
 #endif
 
@@ -1752,8 +1743,10 @@ Blake2sp_Compress2_AVX2_Way4(UInt32 *s_items, const Byte *data, const Byte *end)
 #endif
 
 
+// Alternative: Load IV constants from memory (can be faster for some compilers).
+// Currently using constant generation for better portability.
+// To use memory loading, change #if 0 to #if 1.
 #if 0
-  // use loading constants from memory
   #define KK8(n)  KIV(n), KIV(n), KIV(n), KIV(n), KIV(n), KIV(n), KIV(n), KIV(n)
 MY_ALIGN(64)
 static const UInt32 k_Blake2s_IV_WAY8[]=
@@ -1874,7 +1867,7 @@ Blake2sp_Final_AVX2_Fast(UInt32 *states)
   { STATE_F(s)[0] = BLAKE2S_FINAL_FLAG; /* STATE_F(s)[1] = p->u.header.lastNode_f1; */ }
 
 
-#if 0 || 1 && defined(Z7_MSC_VER_ORIGINAL) && Z7_MSC_VER_ORIGINAL >= 1600
+#if 1 && defined(Z7_MSC_VER_ORIGINAL) && Z7_MSC_VER_ORIGINAL >= 1600
   // good for vs2022
   #define LOOP_8(mac) { unsigned kkk; for (kkk = 0; kkk < 8; kkk++) mac(kkk) }
 #else
@@ -1928,7 +1921,7 @@ Blake2s_Compress(UInt32 *s, const Byte *input)
   #define RTR32M(dest, shift, a)  V(a, dest) = rotrFixed(V(a, dest), shift);
 
 // big interleaving can provides big performance gain, if scheduler queues are small.
-#if 0 || 1 && defined(MY_CPU_X86)
+#if 1 && defined(MY_CPU_X86)
   // interleave-1: for small register number (x86-32bit)
   #define G2(index, a, x, y) \
     ADD_SIGMA (a, (index) + 2 * 0) \
@@ -2023,7 +2016,7 @@ Blake2s_Compress(UInt32 *s, const Byte *input)
   // so Z7_BLAKE2S_UNROLL is good optimization, if there is no vector branch.
   // But if there is vectors branch (for x86*), this scalar code will be unused mostly.
   // So we want smaller code (without unrolling) in that case (x86*).
-#if 0 || 1 && !defined(Z7_BLAKE2S_USE_VECTORS)
+#if 1 && !defined(Z7_BLAKE2S_USE_VECTORS)
   #define Z7_BLAKE2S_UNROLL
 #endif
 
@@ -2573,7 +2566,7 @@ void z7_Black2sp_Prepare(void)
 #if defined(MY_CPU_X86_OR_AMD64)
     #if defined(Z7_BLAKE2S_USE_AVX512_ALWAYS)
       // optional check
-      #if 0 || !(defined(__AVX512F__) && defined(__AVX512VL__))
+      #if !(defined(__AVX512F__) && defined(__AVX512VL__))
       if (CPU_IsSupported_AVX512F_AVX512VL())
       #endif
     #elif defined(Z7_BLAKE2S_USE_SSE41)
