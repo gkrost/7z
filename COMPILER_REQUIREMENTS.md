@@ -21,8 +21,8 @@ The following sections document the workarounds present in the codebase for know
 ### Workaround 1: MSVC x64 movsx Bug
 
 **Files**: 
-- `C/LzFindMt.c:565-591`
-- `C/LzFindOpt.c:215-241`
+- `C/LzFindMt.c`
+- `C/LzFindOpt.c`
 
 **Problem**:
 Old MSVC x64 compilers incorrectly generated a `movsx` (sign-extend move) instruction when converting `UInt32` to `size_t`, instead of using `mov` or `movzx` (zero-extend). This caused incorrect behavior when the high bit of the UInt32 value was set.
@@ -56,7 +56,7 @@ This workaround could be made conditional or removed entirely if:
 
 ### Workaround 2: MSVC __cpuid ECX Register Bug
 
-**File**: `C/CpuArch.c:247-277`
+**File**: `C/CpuArch.c`
 
 **Problem**:
 The `cpuid` instruction supports a subfunction parameter in ECX for certain function values (e.g., `func=7` for extended features). MSDN documentation states that `__cpuid()` should clear ECX before calling the cpuid instruction.
