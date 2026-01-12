@@ -28,20 +28,33 @@ Igor Pavlov : Public domain */
 #if defined(__GNUC__) /* && (__GNUC__ >= 10) */ \
     || defined(__clang__) /* && (__clang_major__ >= 10) */
 
-/* there was some CLANG/GCC compilers that have issues with
-   rbx(ebx) handling in asm blocks in -fPIC mode (__PIC__ is defined).
-   compiler's <cpuid.h> contains the macro __cpuid() that is similar to our code.
+/* WORKAROUND: GCC/CLANG PIC mode rbx/ebx preservation
+   
+   Some older CLANG/GCC compilers had issues with rbx(ebx) handling in 
+   asm blocks in -fPIC mode (__PIC__ is defined). The rbx register is 
+   reserved as the PIC base pointer and must be preserved.
+   
+   Compiler's <cpuid.h> contains the macro __cpuid() that is similar to our code.
+   
    The history of __cpuid() changes in CLANG/GCC:
    GCC:
      2007: it preserved ebx for (__PIC__ && __i386__)
      2013: it preserved rbx and ebx for __PIC__
      2014: it doesn't preserves rbx and ebx anymore
-     we suppose that (__GNUC__ >= 5) fixed that __PIC__ ebx/rbx problem.
+     GCC 5.0+ (2015): Fixed the __PIC__ ebx/rbx problem - we assume __GNUC__ >= 5 is safe
+   
    CLANG:
      2014+: it preserves rbx, but only for 64-bit code. No __PIC__ check.
-   Why CLANG cares about 64-bit mode only, and doesn't care about ebx (in 32-bit)?
-   Do we need __PIC__ test for CLANG or we must care about rbx even if
-   __PIC__ is not defined?
+     Behavior unclear: Why does CLANG only care about 64-bit mode and not ebx (32-bit)?
+   
+   CURRENT STATUS (as of 2025):
+   - GCC < 5 affected: Very old (GCC 5 released April 2015)
+   - CLANG: Unclear if workaround still needed; kept for safety
+   - Minimum supported: GCC 7+ / CLANG 5+ (see BUILDING.md)
+   
+   RECOMMENDATION: This workaround can likely be removed if minimum supported
+   compilers are bumped to GCC 7+ and CLANG 10+. Consider using compiler's 
+   <cpuid.h> instead of inline assembly.
 */
 
 #define ASM_LN "\n"
@@ -245,19 +258,41 @@ void Z7_FASTCALL z7_x86_cpuid_subFunc(UInt32 p[4], UInt32 func, UInt32 subFunc)
 }
 
     #else
-/*
- __cpuid (func == (0 or 7)) requires subfunction number in ECX.
-  MSDN: The __cpuid intrinsic clears the ECX register before calling the cpuid instruction.
-   __cpuid() in new MSVC clears ECX.
-   __cpuid() in old MSVC (14.00) x64 doesn't clear ECX
- We still can use __cpuid for low (func) values that don't require ECX,
- but __cpuid() in old MSVC will be incorrect for some func values: (func == 7).
- So here we use the hack for old MSVC to send (subFunction) in ECX register to cpuid instruction,
- where ECX value is first parameter for FASTCALL / NO_INLINE func.
- So the caller of MY_cpuidex_HACK() sets ECX as subFunction, and
- old MSVC for __cpuid() doesn't change ECX and cpuid instruction gets (subFunction) value.
+/* WORKAROUND: MSVC __cpuid ECX register bug (MSVC < 2010, _MSC_VER < 1600)
  
-DON'T remove Z7_NO_INLINE and Z7_FASTCALL for MY_cpuidex_HACK(): !!!
+ PROBLEM:
+   The cpuid instruction supports a subfunction parameter in ECX for certain 
+   function values (e.g., func==7 for extended features).
+   
+   MSDN states: "The __cpuid intrinsic clears the ECX register before calling 
+   the cpuid instruction."
+   
+   - Modern MSVC (2010+): __cpuidex() properly supports subfunctions
+   - Old MSVC (14.00 = VS2005, _MSC_VER 1400): __cpuid() doesn't clear ECX in x64
+   
+ IMPACT:
+   Old MSVC's __cpuid() works for simple cases (func values that don't use ECX),
+   but fails for func==7 and other subfunction-dependent features.
+   
+ WORKAROUND:
+   We exploit the FASTCALL calling convention (first param in ECX) and NO_INLINE
+   to pass the subFunction value through ECX register. The old MSVC __cpuid()
+   doesn't clear ECX, so the cpuid instruction receives the correct subFunction.
+   
+ AFFECTED VERSIONS:
+   - Visual Studio 2005 (MSVC 8.0, _MSC_VER 1400)
+   - Visual Studio 2008 (MSVC 9.0, _MSC_VER 1500)
+   - Fixed in Visual Studio 2010 (MSVC 10.0, _MSC_VER 1600) with __cpuidex()
+   
+ CURRENT STATUS:
+   This workaround is needed for MSVC < 2010. Current minimum supported version
+   is VS2017 (see BUILDING.md), so this code path should never execute in 
+   supported builds. However, it's kept for compatibility with older toolchains.
+   
+ IMPORTANT: DON'T remove Z7_NO_INLINE and Z7_FASTCALL from MY_cpuidex_HACK()!
+   The workaround relies on the FASTCALL convention to pass subFunction in ECX.
+   
+ FUTURE: Consider removing this workaround and requiring _MSC_VER >= 1600 (VS2010+).
 */
 static
 Z7_NO_INLINE void Z7_FASTCALL MY_cpuidex_HACK(Int32 subFunction, Int32 func, Int32 *CPUInfo)
@@ -266,7 +301,11 @@ Z7_NO_INLINE void Z7_FASTCALL MY_cpuidex_HACK(Int32 subFunction, Int32 func, Int
   __cpuid(CPUInfo, func);
 }
       #define MY_cpuidex(info, func, func2)  MY_cpuidex_HACK(func2, func, info)
-      #pragma message("======== MY_cpuidex_HACK WAS USED ========")
+      #pragma message("======== COMPILER WORKAROUND ACTIVE ========")
+      #pragma message("Using MY_cpuidex_HACK for MSVC < 2010 (VS2005/2008)")
+      #pragma message("This workaround should not be needed with MSVC 2010+ (_MSC_VER >= 1600)")
+      #pragma message("Consider upgrading to Visual Studio 2017 or later (see BUILDING.md)")
+      #pragma message("==========================================")
 static
 void Z7_FASTCALL z7_x86_cpuid_subFunc(UInt32 p[4], UInt32 func, UInt32 subFunc)
 {

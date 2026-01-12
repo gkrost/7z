@@ -22,6 +22,7 @@
 
 - 🏠 [Official Website](https://www.7-zip.org)
 - 📖 [Building Instructions](BUILDING.md)
+- 🔧 [Compiler Requirements](COMPILER_REQUIREMENTS.md)
 - 🤝 [Contributing Guidelines](CONTRIBUTING.md)
 - 📄 [License Information](LICENSE.md)
 - 🏗️ [Architecture Documentation](docs/ARCHITECTURE.md)
