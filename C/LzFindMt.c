@@ -3,16 +3,10 @@
 
 #include "Precomp.h"
 
-// #include <stdio.h>
-
 #include "CpuArch.h"
 
 #include "LzHash.h"
 #include "LzFindMt.h"
-
-// #define LOG_ITERS
-
-// #define LOG_THREAD
 
 #ifdef LOG_THREAD
 #include <stdio.h>
@@ -53,9 +47,6 @@ extern UInt64 g_NumIters_Bytes;
 #define MF(mt) ((mt)->MatchFinder)
 #define MF_CRC (p->crc)
 
-// #define MF(mt) (&(mt)->MatchFinder)
-// #define MF_CRC (p->MatchFinder.crc)
-
 #define MT_HASH2_CALC \
   h2 = (MF_CRC[cur[0]] ^ cur[1]) & (kHash2Size - 1);
 
@@ -95,8 +86,6 @@ static void MtSync_Construct(CMtSync *p)
   Semaphore_Construct(&p->filledSemaphore);
 }
 
-
-// #define DEBUG_BUFFER_LOCK   // define it to debug lock state
 
 #ifdef DEBUG_BUFFER_LOCK
 #include <stdlib.h>
@@ -220,7 +209,6 @@ static void MtSync_Destruct(CMtSync *p)
 }
 
 
-// #define RINOK_THREAD(x) { if ((x) != 0) return SZ_ERROR_THREAD; }
 // we want to get real system error codes here instead of SZ_ERROR_THREAD
 #define RINOK_THREAD(x)  RINOK_WRes(x)
 
@@ -292,8 +280,6 @@ static SRes MtSync_Create(CMtSync *p, THREAD_FUNC_TYPE startAddress, void *obj)
 // ---------- HASH THREAD ----------
 
 #define kMtMaxValForNormalize 0xFFFFFFFF
-// #define kMtMaxValForNormalize ((1 << 21)) // for debug
-// #define kNormalizeAlign (1 << 7) // alignment for speculated accesses
 
 #ifdef MY_CPU_LE_UNALIGN
   #define GetUi24hi_from32(p) ((UInt32)GetUi32(p) >> 8)

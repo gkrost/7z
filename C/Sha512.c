@@ -97,7 +97,6 @@ BoolInt Sha512_SetFunction(CSha512 *p, unsigned algo)
 #else
   #define STEP_PRE 2
   #define STEP_MAIN 4
-  // #define Z7_SHA512_UNROLL
 #endif
 
 #undef Z7_SHA512_BIG_W
@@ -441,9 +440,6 @@ void Sha512_Final(CSha512 *p, Byte *digest, unsigned digestSize)
 }
 
 
-
-// #define Z7_SHA512_PROBE_DEBUG // for debug
-
 #if defined(Z7_SHA512_PROBE_DEBUG) || defined(Z7_COMPILER_SHA512_SUPPORTED)
 
 #if defined(Z7_SHA512_PROBE_DEBUG) \
@@ -497,7 +493,6 @@ static void Z7_CDECL Sha512_signal_Handler(int v)
 #endif
 
 #if defined(MY_CPU_ARM64)
-// #define Z7_SHA512_USE_SIMPLIFIED_PROBE // for debug
 #endif
 
 #ifdef Z7_SHA512_USE_SIMPLIFIED_PROBE
