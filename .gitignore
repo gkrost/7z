@@ -1,3 +1,29 @@
+
+# Build artifacts and object files
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dll
+*.exe
+*.dylib
+CPP/7zip/Bundles/*/_o/*
+
+# Build directories
+b/
+_o/
+*.tmp
+
+# Editor and IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.err
+
 # Python caches
 __pycache__/
 *.pyc

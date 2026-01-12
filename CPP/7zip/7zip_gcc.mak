@@ -182,7 +182,7 @@ AFLAGS_ABI = -coff -DABI_CDECL
 # -DABI_LINUX
 # -DABI_CDECL
 endif
-AFLAGS = -nologo $(AFLAGS_ABI) -Fo$(O)/$(basename $(<F)).o
+AFLAGS = -c -nologo $(AFLAGS_ABI) -Fo$(O)/$(basename $(<F)).o
 
 else  # IS_MINGW
 
@@ -194,7 +194,7 @@ AFLAGS_ABI = -elf -DABI_LINUX -DABI_CDECL
 # -DABI_LINUX
 # -DABI_CDECL
 endif
-AFLAGS = -nologo $(AFLAGS_ABI) -Fo$(O)/
+AFLAGS = -c -nologo $(AFLAGS_ABI) -Fo$(O)/
 
 endif  # IS_MINGW
 
