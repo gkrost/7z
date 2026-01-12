@@ -66,12 +66,6 @@ operator new(size_t size)
 }
 
 
-#if defined(_MSC_VER) && _MSC_VER == 1600
-// vs2010 has no throw() by default ?
-#pragma warning(push)
-#pragma warning(disable : 4986) // 'operator delete': exception specification does not match previous declaration
-#endif
-
 void
 #ifdef _MSC_VER
 __cdecl
@@ -85,10 +79,7 @@ operator delete(void *p) throw()
 
 /* we define operator delete(void *p, size_t n) because
    vs2022 compiler uses delete(void *p, size_t n), and
-   we want to mix files from different compilers:
-     - old vc6 linker
-     - old vc6 complier
-     - new vs2022 complier
+   we want to support mixed compilation scenarios.
 */
 void
 #ifdef _MSC_VER
@@ -99,10 +90,6 @@ operator delete(void *p, size_t n) throw()
   UNUSED_VAR(n)
   ::free(p);
 }
-
-#if defined(_MSC_VER) && _MSC_VER == 1600
-#pragma warning(pop)
-#endif
 
 /*
 void *

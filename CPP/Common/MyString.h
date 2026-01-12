@@ -37,13 +37,8 @@ class FString;
 
 /*
   native support for wchar_t:
- _MSC_VER == 1600 : /Zc:wchar_t is not supported
- _MSC_VER == 1310 (VS2003)
- ? _MSC_VER == 1400 (VS2005) : wchar_t <- unsigned short
-              /Zc:wchar_t  : wchar_t <- __wchar_t, _WCHAR_T_DEFINED and _NATIVE_WCHAR_T_DEFINED
- _MSC_VER > 1400 (VS2008+)
-              /Zc:wchar_t[-]
-              /Zc:wchar_t is on by default
+  MSVC 2017+ supports /Zc:wchar_t[-]
+  /Zc:wchar_t is on by default
 */
 
 #ifdef _WIN32

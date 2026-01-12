@@ -7,10 +7,6 @@
 
 #include "../../7zWindows.h"
 
-#if defined(_MSC_VER) && _MSC_VER < 1600
-#pragma warning(disable : 4201) // nonstandard extension used : nameless struct/union
-#endif
-
 Z7_DIAGNOSTIC_IGNORE_CAST_FUNCTION
 
 #ifdef Z7_OLD_WIN_SDK

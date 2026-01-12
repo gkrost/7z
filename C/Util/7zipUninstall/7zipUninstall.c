@@ -8,10 +8,6 @@
 #include "../../7zTypes.h"
 #include "../../7zWindows.h"
 
-#if defined(_MSC_VER) && _MSC_VER < 1600
-#pragma warning(disable : 4201) // nonstandard extension used : nameless struct/union
-#endif
-
 #ifdef Z7_OLD_WIN_SDK
 struct IShellView;
 #define SHFOLDERAPI  EXTERN_C DECLSPEC_IMPORT HRESULT STDAPICALLTYPE

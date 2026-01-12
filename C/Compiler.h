@@ -124,40 +124,19 @@ typedef void (*Z7_void_Function)(void);
 // >= 1900 : -O1 : for printf
 #pragma warning(disable : 4710) // function not inlined
 
-// Legacy MSVC versions (< VS2017) are not supported anymore.
+// winnt.h: 'Int64ShllMod32'
+#pragma warning(disable : 4514) // unreferenced inline function has been removed
 
-/*
-#if _MSC_VER > 1400 && _MSC_VER <= 1900
-// strcat: This function or variable may be unsafe
-// sysinfoapi.h: kit10: GetVersion was declared deprecated
-#pragma warning(disable : 4996)
-#endif
-*/
-
-#if _MSC_VER > 1200
 // -Wall warnings
 
 #pragma warning(disable : 4711) // function selected for automatic inline expansion
 #pragma warning(disable : 4820) // '2' bytes padding added after data member
-
-#if _MSC_VER >= 1400 && _MSC_VER < 1920
-// 1400: string.h: _DBG_MEMCPY_INLINE_
-// 1600 - 191x : smmintrin.h __cplusplus'
-// is not defined as a preprocessor macro, replacing with '0' for '#if/#elif'
-#pragma warning(disable : 4668)
-
-// 1400 - 1600 : WinDef.h : 'FARPROC' :
-// 1900 - 191x : immintrin.h: _readfsbase_u32
-// no function prototype given : converting '()' to '(void)'
-#pragma warning(disable : 4255)
-#endif
 
 #if _MSC_VER >= 1914
 // Compiler will insert Spectre mitigation for memory load if /Qspectre switch specified
 #pragma warning(disable : 5045)
 #endif
 
-#endif // _MSC_VER > 1200
 #endif // _MSC_VER
 
 

@@ -167,14 +167,9 @@ if compiled with new GCC libstdc++, GCC libstdc++ can use:
 
 
 #if defined(__cplusplus) && (__cplusplus >= 201103L) \
-    || defined(_MSC_VER) && (_MSC_VER >= 1400) /* && (_MSC_VER != 1600) */ \
+    || defined(_MSC_VER) \
     || defined(__clang__) && __clang_major__ >= 4
-  #if defined(_MSC_VER) && (_MSC_VER == 1600) /* && (_MSC_VER != 1600) */
-    #pragma warning(disable : 4481) // nonstandard extension used: override specifier 'override'
-    #define Z7_DESTRUCTOR_override
-  #else
-    #define Z7_DESTRUCTOR_override  override
-  #endif
+  #define Z7_DESTRUCTOR_override  override
   #define Z7_override  override
 #else
   #define Z7_override
@@ -215,7 +210,7 @@ protected:
 // || defined(__clang__)
 // || defined(__GNUC__)
 
-#if defined(_MSC_VER) && (_MSC_VER >= 1400)
+#if defined(_MSC_VER)
 #define Z7_DECLSPEC_NOVTABLE __declspec(novtable)
 #else
 #define Z7_DECLSPEC_NOVTABLE
