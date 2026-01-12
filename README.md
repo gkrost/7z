@@ -85,6 +85,23 @@ See [LICENSE.md](LICENSE.md) for complete licensing information.
 
 Recent security fixes are documented in [DOC/src-history.txt](DOC/src-history.txt).
 
+## Code Quality & Issues
+
+This repository includes comprehensive code quality analysis and tooling:
+
+- 📊 [Code Quality Issues Report](CODE_QUALITY_ISSUES.md) - Comprehensive analysis
+- 📋 [Issues Folder](issues/) - Detailed issue reports ready for GitHub
+- 🔧 [Issue Creation Guide](GITHUB_ISSUES_GUIDE.md) - Automated scripts for creating GitHub issues
+- 📈 [Issues Status Tracker](ISSUES_STATUS.md) - Track issue creation and resolution
+
+To create GitHub issues from the analysis:
+```bash
+# Using the automated script
+./create-github-issues.sh
+# Or
+python3 create_github_issues.py
+```
+
 ## Support
 
 - **Website**: https://www.7-zip.org

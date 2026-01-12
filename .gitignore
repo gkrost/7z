@@ -1,3 +1,4 @@
+
 # Build artifacts and object files
 *.o
 *.obj
@@ -22,3 +23,19 @@ _o/
 *~
 .DS_Store
 *.err
+
+# Python caches
+__pycache__/
+*.pyc
+.venv/
+
+# Test framework artifacts
+tests/results/
+tests/test_data/
+results/
+test_data/
+
+test_framework.py.log
+
+# Generated issue files (can be regenerated from scripts)
+generated_issues/
