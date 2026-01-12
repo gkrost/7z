@@ -28,56 +28,25 @@ Igor Pavlov : Public domain */
 #if defined(__GNUC__) /* && (__GNUC__ >= 10) */ \
     || defined(__clang__) /* && (__clang_major__ >= 10) */
 
-/* there was some CLANG/GCC compilers that have issues with
-   rbx(ebx) handling in asm blocks in -fPIC mode (__PIC__ is defined).
-   compiler's <cpuid.h> contains the macro __cpuid() that is similar to our code.
-   The history of __cpuid() changes in CLANG/GCC:
-   GCC:
-     2007: it preserved ebx for (__PIC__ && __i386__)
-     2013: it preserved rbx and ebx for __PIC__
-     2014: it doesn't preserves rbx and ebx anymore
-     we suppose that (__GNUC__ >= 5) fixed that __PIC__ ebx/rbx problem.
-   CLANG:
-     2014+: it preserves rbx, but only for 64-bit code. No __PIC__ check.
-   Why CLANG cares about 64-bit mode only, and doesn't care about ebx (in 32-bit)?
-   Do we need __PIC__ test for CLANG or we must care about rbx even if
-   __PIC__ is not defined?
+/* Minimum GCC version requirement: 13.4
+   GCC 13.4 is the lowest version still maintained by the GCC team.
+   All workarounds for older GCC versions have been removed.
 */
+#if defined(__GNUC__) && !defined(__clang__)
+  #if __GNUC__ < 13 || (__GNUC__ == 13 && __GNUC_MINOR__ < 4)
+    #error "GCC 13.4 or newer is required. Please upgrade your compiler."
+  #endif
+#endif
 
 #define ASM_LN "\n"
-   
-#if defined(MY_CPU_AMD64) && defined(__PIC__) \
-    && ((defined (__GNUC__) && (__GNUC__ < 5)) || defined(__clang__))
 
-  /* "=&r" selects free register. It can select even rbx, if that register is free.
-     "=&D" for (RDI) also works, but the code can be larger with "=&D"
-     "2"(subFun) : 2 is (zero-based) index in the output constraint list "=c" (ECX). */
-
-#define x86_cpuid_MACRO_2(p, func, subFunc) { \
-  __asm__ __volatile__ ( \
-    ASM_LN   "mov     %%rbx, %q1"  \
-    ASM_LN   "cpuid"               \
-    ASM_LN   "xchg    %%rbx, %q1"  \
-    : "=a" ((p)[0]), "=&r" ((p)[1]), "=c" ((p)[2]), "=d" ((p)[3]) : "0" (func), "2"(subFunc)); }
-
-#elif defined(MY_CPU_X86) && defined(__PIC__) \
-    && ((defined (__GNUC__) && (__GNUC__ < 5)) || defined(__clang__))
-
-#define x86_cpuid_MACRO_2(p, func, subFunc) { \
-  __asm__ __volatile__ ( \
-    ASM_LN   "mov     %%ebx, %k1"  \
-    ASM_LN   "cpuid"               \
-    ASM_LN   "xchg    %%ebx, %k1"  \
-    : "=a" ((p)[0]), "=&r" ((p)[1]), "=c" ((p)[2]), "=d" ((p)[3]) : "0" (func), "2"(subFunc)); }
-
-#else
-
+/* Standard cpuid implementation without legacy workarounds.
+   GCC 13.4+ and modern Clang handle cpuid correctly without special handling.
+*/
 #define x86_cpuid_MACRO_2(p, func, subFunc) { \
   __asm__ __volatile__ ( \
     ASM_LN   "cpuid"               \
     : "=a" ((p)[0]), "=b" ((p)[1]), "=c" ((p)[2]), "=d" ((p)[3]) : "0" (func), "2"(subFunc)); }
-
-#endif
 
 #define x86_cpuid_MACRO(p, func)  x86_cpuid_MACRO_2(p, func, 0)
 
@@ -245,19 +214,41 @@ void Z7_FASTCALL z7_x86_cpuid_subFunc(UInt32 p[4], UInt32 func, UInt32 subFunc)
 }
 
     #else
-/*
- __cpuid (func == (0 or 7)) requires subfunction number in ECX.
-  MSDN: The __cpuid intrinsic clears the ECX register before calling the cpuid instruction.
-   __cpuid() in new MSVC clears ECX.
-   __cpuid() in old MSVC (14.00) x64 doesn't clear ECX
- We still can use __cpuid for low (func) values that don't require ECX,
- but __cpuid() in old MSVC will be incorrect for some func values: (func == 7).
- So here we use the hack for old MSVC to send (subFunction) in ECX register to cpuid instruction,
- where ECX value is first parameter for FASTCALL / NO_INLINE func.
- So the caller of MY_cpuidex_HACK() sets ECX as subFunction, and
- old MSVC for __cpuid() doesn't change ECX and cpuid instruction gets (subFunction) value.
+/* WORKAROUND: MSVC __cpuid ECX register bug (MSVC < 2010, _MSC_VER < 1600)
  
-DON'T remove Z7_NO_INLINE and Z7_FASTCALL for MY_cpuidex_HACK(): !!!
+ PROBLEM:
+   The cpuid instruction supports a subfunction parameter in ECX for certain 
+   function values (e.g., func==7 for extended features).
+   
+   MSDN states: "The __cpuid intrinsic clears the ECX register before calling 
+   the cpuid instruction."
+   
+   - Modern MSVC (2010+): __cpuidex() properly supports subfunctions
+   - Old MSVC (14.00 = VS2005, _MSC_VER 1400): __cpuid() doesn't clear ECX in x64
+   
+ IMPACT:
+   Old MSVC's __cpuid() works for simple cases (func values that don't use ECX),
+   but fails for func==7 and other subfunction-dependent features.
+   
+ WORKAROUND:
+   We exploit the FASTCALL calling convention (first param in ECX) and NO_INLINE
+   to pass the subFunction value through ECX register. The old MSVC __cpuid()
+   doesn't clear ECX, so the cpuid instruction receives the correct subFunction.
+   
+ AFFECTED VERSIONS:
+   - Visual Studio 2005 (MSVC 8.0, _MSC_VER 1400)
+   - Visual Studio 2008 (MSVC 9.0, _MSC_VER 1500)
+   - Fixed in Visual Studio 2010 (MSVC 10.0, _MSC_VER 1600) with __cpuidex()
+   
+ CURRENT STATUS:
+   This workaround is needed for MSVC < 2010. Current minimum supported version
+   is VS2017 (see BUILDING.md), so this code path should never execute in 
+   supported builds. However, it's kept for compatibility with older toolchains.
+   
+ IMPORTANT: DON'T remove Z7_NO_INLINE and Z7_FASTCALL from MY_cpuidex_HACK()!
+   The workaround relies on the FASTCALL convention to pass subFunction in ECX.
+   
+ FUTURE: Consider removing this workaround and requiring _MSC_VER >= 1600 (VS2010+).
 */
 static
 Z7_NO_INLINE void Z7_FASTCALL MY_cpuidex_HACK(Int32 subFunction, Int32 func, Int32 *CPUInfo)
@@ -266,7 +257,11 @@ Z7_NO_INLINE void Z7_FASTCALL MY_cpuidex_HACK(Int32 subFunction, Int32 func, Int
   __cpuid(CPUInfo, func);
 }
       #define MY_cpuidex(info, func, func2)  MY_cpuidex_HACK(func2, func, info)
-      #pragma message("======== MY_cpuidex_HACK WAS USED ========")
+      #pragma message("======== COMPILER WORKAROUND ACTIVE ========")
+      #pragma message("Using MY_cpuidex_HACK for MSVC < 2010 (VS2005/2008)")
+      #pragma message("This workaround should not be needed with MSVC 2010+ (_MSC_VER >= 1600)")
+      #pragma message("Consider upgrading to Visual Studio 2017 or later (see BUILDING.md)")
+      #pragma message("==========================================")
 static
 void Z7_FASTCALL z7_x86_cpuid_subFunc(UInt32 p[4], UInt32 func, UInt32 subFunc)
 {

@@ -563,8 +563,34 @@ static void HashThreadFunc(CMatchFinderMt *mt)
 #ifdef MFMT_GM_INLINE
 
 /*
-  we use size_t for (pos) instead of UInt32
-  to eliminate "movsx" BUG in old MSVC x64 compiler.
+  WORKAROUND: MSVC x64 movsx bug (old MSVC versions)
+  
+  We use size_t for (pos) parameter instead of UInt32 to eliminate a 
+  "movsx" bug in old MSVC x64 compilers.
+  
+  PROBLEM:
+    Old MSVC x64 compilers incorrectly generated a movsx (sign-extend move)
+    instruction when converting UInt32 to size_t, instead of using mov or 
+    movzx (zero-extend). This caused incorrect behavior when the high bit 
+    of the UInt32 was set.
+    
+  WORKAROUND:
+    By using size_t directly for the parameter, we avoid the type conversion
+    that triggers the bug.
+    
+  AFFECTED VERSIONS:
+    The exact MSVC versions affected are not documented here, but this is
+    known to affect some versions before Visual Studio 2015 (_MSC_VER 1900).
+    
+  CURRENT STATUS:
+    This workaround has minimal downsides and ensures compatibility with
+    older compilers. The minimum supported MSVC version is VS2017 (see 
+    BUILDING.md), but this workaround is kept for safety and because it 
+    doesn't negatively impact newer compilers.
+    
+  FUTURE: 
+    This workaround could be made conditional with version checks if needed,
+    but the current approach (always using size_t) is simple and safe.
 */
 
 

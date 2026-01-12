@@ -2,6 +2,8 @@
 
 This guide provides detailed instructions for building 7-Zip from source on different platforms.
 
+**Note**: For detailed information about compiler versions, compatibility, and compiler-specific workarounds, see [COMPILER_REQUIREMENTS.md](COMPILER_REQUIREMENTS.md).
+
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)
@@ -16,6 +18,9 @@ This guide provides detailed instructions for building 7-Zip from source on diff
 ### Windows
 
 - **Visual Studio 2017 or later** (minimum: VS 2017, recommended: VS 2019/2022)
+  - **Minimum MSVC version**: _MSC_VER 1910 (Visual Studio 2017)
+  - Older versions (VS2010-2015) may work with compiler workarounds, but are not tested
+  - See [COMPILER_REQUIREMENTS.md](COMPILER_REQUIREMENTS.md) for detailed version info and workarounds
 - **Microsoft Macro Assembler**:
   - `ml.exe` for x86
   - `ml64.exe` for x64
@@ -23,7 +28,10 @@ This guide provides detailed instructions for building 7-Zip from source on diff
 
 ### Linux/macOS
 
-- **GCC 7 or later** or **Clang 5 or later** (CI workflow uses GCC 15.2)
+- **GCC 13.4 or later** or **Clang 10 or later**
+  - **Minimum GCC version**: 13.4 (lowest version maintained by GCC team)
+  - **Minimum Clang version**: 10.0
+  - See [COMPILER_REQUIREMENTS.md](COMPILER_REQUIREMENTS.md) for detailed version info
 - **Make** utility
 - **Optional**: Assembler for optimized builds
   - [Asmc Macro Assembler](https://github.com/nidud/asmc) (recommended for x86/x64)
