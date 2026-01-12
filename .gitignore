@@ -36,3 +36,6 @@ results/
 test_data/
 
 test_framework.py.log
+
+# Generated issue files (can be regenerated from scripts)
+generated_issues/
