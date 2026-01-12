@@ -4,12 +4,11 @@ Script to create GitHub issues from markdown files in the issues folder.
 Can be used with GitHub CLI or GitHub API.
 """
 
-import os
 import sys
 import json
 import subprocess
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 # Issue metadata: filename -> (title, labels)
 ISSUE_METADATA = {
@@ -129,12 +128,6 @@ def main():
         print("  This script will generate JSON files instead.")
         print("  Install gh from: https://cli.github.com/")
         print()
-        
-        # Create output directory for JSON files
-        output_dir = script_dir / "generated_issues"
-        output_dir.mkdir(exist_ok=True)
-        print(f"  JSON files will be saved to: {output_dir}")
-        print()
     
     created = 0
     skipped = 0
@@ -164,6 +157,10 @@ def main():
                 failed += 1
         else:
             # Generate JSON file
+            # Determine output directory for generated issue JSON files
+            output_dir = script_dir / "generated_issues"
+            output_dir.mkdir(parents=True, exist_ok=True)
+            
             issue_json = generate_issue_json(title, body, labels)
             json_filename = filename.replace('.md', '.json')
             json_path = output_dir / json_filename
