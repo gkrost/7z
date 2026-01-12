@@ -766,6 +766,9 @@ LONG InterlockedIncrement(LONG volatile *addend)
 LONG InterlockedDecrement(LONG volatile *addend)
 {
   // Print("InterlockedDecrement")
+  #if defined(__clang__) && (__clang_major__ >= 8)
+    #pragma GCC diagnostic ignored "-Watomic-implicit-seq-cst"
+  #endif
   return __sync_sub_and_fetch(addend, 1);
 }
 
