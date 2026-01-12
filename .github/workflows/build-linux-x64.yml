@@ -1,5 +1,8 @@
 name: Build 7z Linux x64
 
+# This workflow requires GCC 15.2 to meet the minimum compiler version
+# requirements for building 7z with all optimizations enabled.
+
 on:
   push:
     branches: [ main, master ]
