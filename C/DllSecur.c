@@ -48,13 +48,13 @@ static BOOL IsNonVista6Family(void)
   if (!hMod)
     return TRUE; /* Assume non-Vista if we can't check */
   
-  func = (Func_RtlGetVersion)(void *)(ptrdiff_t)GetProcAddress(hMod, "RtlGetVersion");
+  func = (Func_RtlGetVersion) Z7_CAST_FUNC_C GetProcAddress(hMod, "RtlGetVersion");
   if (!func)
     return TRUE; /* Assume non-Vista if we can't check */
   
   vi.dwOSVersionInfoSize = sizeof(vi);
   if (func(&vi) != 0)
-    return TRUE; /* Assume non-Vista if call fails */
+    return TRUE; /* RtlGetVersion failed (non-zero NTSTATUS), assume non-Vista */
   
   /* Return TRUE if major version is NOT 6 (not Vista/7/8/8.1) */
   return vi.dwMajorVersion != 6;
