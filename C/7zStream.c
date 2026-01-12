@@ -27,26 +27,7 @@ SRes SeqInStream_ReadMax(ISeqInStreamPtr stream, void *buf, size_t *processedSiz
   return SZ_OK;
 }
 
-/*
-SRes SeqInStream_Read2(ISeqInStreamPtr stream, void *buf, size_t size, SRes errorType)
-{
-  while (size != 0)
-  {
-    size_t processed = size;
-    RINOK(ISeqInStream_Read(stream, buf, &processed))
-    if (processed == 0)
-      return errorType;
-    buf = (void *)((Byte *)buf + processed);
-    size -= processed;
-  }
-  return SZ_OK;
-}
 
-SRes SeqInStream_Read(ISeqInStreamPtr stream, void *buf, size_t size)
-{
-  return SeqInStream_Read2(stream, buf, size, SZ_ERROR_INPUT_EOF);
-}
-*/
 
 
 SRes SeqInStream_ReadByte(ISeqInStreamPtr stream, Byte *buf)

@@ -1,1 +1,42 @@
+# Build artifacts and object files
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dll
+*.exe
+*.dylib
 CPP/7zip/Bundles/*/_o/*
+
+# Build directories
+b/
+_o/
+*.tmp
+CPP/7zip/Bundles/*/_o/*
+
+# Editor and IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.err
+
+# Python caches
+__pycache__/
+*.pyc
+.venv/
+
+# Test framework artifacts
+tests/results/
+tests/test_data/
+results/
+test_data/
+
+test_framework.py.log
+
+# Generated issue files (can be regenerated from scripts)
+generated_issues/
+

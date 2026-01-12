@@ -1145,7 +1145,7 @@ static void MatchFinder_MovePos(CMatchFinder *p)
     const ptrdiff_t diff = (ptrdiff_t)0 - (ptrdiff_t)d2; \
     const Byte *c = cur + maxLen; \
     const Byte *lim = cur + lenLimit; \
-    for (; c != lim; c++) if (*(c + diff) != *c) break; \
+    for (; c != lim; c++) if ((c + diff) < p->buffer || (c + diff) >= p->buffer + p->streamPos - p->pos || *(c + diff) != *c) break; \
     maxLen = (unsigned)(c - cur); }
 
 static UInt32* Bt2_MatchFinder_GetMatches(void *_p, UInt32 *distances)

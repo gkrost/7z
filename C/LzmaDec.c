@@ -8,8 +8,8 @@
 /* #include "CpuArch.h" */
 #include "LzmaDec.h"
 
-// #define kNumTopBits 24
-#define kTopValue ((UInt32)1 << 24)
+#define kNumTopBits 24
+#define kTopValue ((UInt32)1 << kNumTopBits)
 
 #define kNumBitModelTotalBits 11
 #define kBitModelTotal (1 << kNumBitModelTotalBits)
