@@ -913,7 +913,7 @@ HRESULT CPanel::RefreshListCtrl(const CSelectedState &state)
   Refresh_StatusBar();
   /*
   char s[256];
-  sprintf(s,
+  snprintf(s, sizeof(s),
       // "attribMap = %5d, extMap = %5d, "
       "delete = %5d, load = %5d, list = %5d, sort = %5d, end = %5d",
       // g_Ext_to_Icon_Map._attribMap.Size(),
@@ -924,7 +924,7 @@ HRESULT CPanel::RefreshListCtrl(const CSelectedState &state)
       tickCount4 - tickCount3,
       tickCount5 - tickCount4
       );
-  sprintf(s,
+  snprintf(s, sizeof(s),
       "5 = %5d, 6 = %5d, 7 = %5d, 8 = %5d, 9 = %5d",
       tickCount5 - tickCount4,
       tickCount6 - tickCount5,

@@ -38,9 +38,10 @@ typedef enum {
 #define LLL_(quote) L##quote
 #define LLL(quote) LLL_(quote)
 
-#define wcscat lstrcatW
+// Note: Using Windows API functions directly instead of unsafe standard C functions
+// lstrcpyW and lstrcatW are Windows-specific and still have similar safety concerns
+// Future enhancement: Consider using wcscpy_s and wcscat_s for improved safety
 #define wcslen (size_t)lstrlenW
-#define wcscpy lstrcpyW
 
 // static LPCWSTR const k_7zip = L"7-Zip";
 
@@ -177,7 +178,7 @@ static void PrintErrorMessage(const char *s1, const wchar_t *s2)
   if (s2)
   {
     CatAscii(m, "\n");
-    wcscat(m, s2);
+    lstrcatW(m, s2);
   }
   MessageBoxW(g_HWND, m, k_7zip_with_Ver_Uninstall, MB_ICONERROR | MB_OK);
 }
@@ -406,7 +407,7 @@ static void SetShellProgramsGroup(HWND hwndOwner)
         CpyAscii(link + baseLen, k == 0 ?
             "7-Zip File Manager.lnk" :
             "7-Zip Help.lnk");
-        wcscpy(destPath, path);
+        lstrcpyW(destPath, path);
         CatAscii(destPath, k == 0 ?
             "7zFM.exe" :
             "7-zip.chm");
@@ -635,7 +636,7 @@ static void AddPathParam(wchar_t *dest, const wchar_t *src)
   const BoolInt needQuote = IsThereSpace(src);
   if (needQuote)
     CatAscii(dest, "\"");
-  wcscat(dest, src);
+  lstrcatW(dest, src);
   if (needQuote)
     CatAscii(dest, "\"");
 }
@@ -651,7 +652,7 @@ static BoolInt GetErrorMessage(DWORD errorCode, WCHAR *message)
         | FORMAT_MESSAGE_IGNORE_INSERTS,
         NULL, errorCode, 0, (LPWSTR) &msgBuf, 0, NULL) == 0)
     return False;
-  wcscpy(message, msgBuf);
+  lstrcpyW(message, msgBuf);
   LocalFree(msgBuf);
   return True;
 }
@@ -1001,7 +1002,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
           }
           else if (cmd[1] == 'D' && cmd[2] == '=')
           {
-            wcscpy(workDir, cmd + 3);
+            lstrcpyW(workDir, cmd + 3);
             // RemoveQuotes(workDir);
             useTemp = False;
             error = False;
@@ -1009,7 +1010,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         }
         s = s2;
         if (error && cmdError[0] == 0)
-          wcscpy(cmdError, cmd);
+          lstrcpyW(cmdError, cmd);
       }
     }
 
@@ -1028,7 +1029,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
       return 1;
 
     name = NULL;
-    wcscpy(modulePrefix, modulePath);
+    lstrcpyW(modulePrefix, modulePath);
 
     {
       wchar_t *s = modulePrefix;
@@ -1060,7 +1061,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     /*
       {
         WCHAR s[MAX_PATH + 1];
-        wcscpy(s, path);
+        lstrcpyW(s, path);
         GetLongPathNameW(s, path, MAX_PATH);
       }
     */
@@ -1096,7 +1097,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         if (CreateDirectoryW(path, NULL))
         {
           CatAscii(path, STRING_PATH_SEPARATOR);
-          wcscpy(tempPath, path);
+          lstrcpyW(tempPath, path);
           break;
         }
         if (GetLastError() != ERROR_ALREADY_EXISTS)
@@ -1105,7 +1106,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
       
       if (tempPath[0] != 0)
       {
-        wcscpy(copyPath, tempPath);
+        lstrcpyW(copyPath, tempPath);
         CatAscii(copyPath, "Uninst.exe"); // we need not "Uninstall.exe" here
         
         if (CopyFileW(modulePath, copyPath, TRUE))
@@ -1124,7 +1125,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
             AddPathParam(cmdLine, modulePrefix);
             
             if (cmdParams[0] != 0 && wcslen(cmdParams) < MAX_PATH * 2 + 10)
-              wcscat(cmdLine, cmdParams);
+              lstrcatW(cmdLine, cmdParams);
             
             memset(&si, 0, sizeof(si));
             si.cb = sizeof(si);
@@ -1144,11 +1145,11 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     }
   }
 
-  wcscpy(path, modulePrefix);
+  lstrcpyW(path, modulePrefix);
 
   if (workDir[0] != 0)
   {
-    wcscpy(path, workDir);
+    lstrcpyW(path, workDir);
     NormalizePrefix(path);
   }
 

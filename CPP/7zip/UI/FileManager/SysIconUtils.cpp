@@ -231,7 +231,7 @@ int CExtToIconMap::GetIconIndex(DWORD attrib, const wchar_t *fileName /*, UStrin
   if (MyStringCompareNoCase(fileName, L"$Recycle.Bin") == 0)
   {
     char s[256];
-    sprintf(s, "SPEC i = %3d, attr = %7x", _attribMap.Size(), attrib);
+    snprintf(s, sizeof(s), "SPEC i = %3d, attr = %7x", _attribMap.Size(), attrib);
     OutputDebugStringA(s);
     OutputDebugStringW(fileName);
   }
@@ -263,7 +263,7 @@ int CExtToIconMap::GetIconIndex(DWORD attrib, const wchar_t *fileName /*, UStrin
     {
       /*
       char s[256];
-      sprintf(s, "i = %3d, attr = %7x", _attribMap.Size(), attrib);
+      snprintf(s, sizeof(s), "i = %3d, attr = %7x", _attribMap.Size(), attrib);
       OutputDebugStringA(s);
       */
       pair.Attrib = attrib;

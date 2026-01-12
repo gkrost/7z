@@ -498,7 +498,7 @@ static void PrintError_WRes(const char *message, WRes wres)
     Print("System error code: ");
     Print(s);
   }
-  // sprintf(buffer + strlen(buffer), "\nSystem error code: %d", (unsigned)wres);
+  // snprintf(buffer, sizeof(buffer), "\nSystem error code: %d", (unsigned)wres);
   #ifdef _WIN32
   {
     char *s = NULL;

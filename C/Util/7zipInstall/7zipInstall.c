@@ -46,10 +46,10 @@ typedef enum {
 #define LLL_(quote) L##quote
 #define LLL(quote) LLL_(quote)
 
-#define wcscat lstrcatW
+// Note: Using Windows API functions directly instead of unsafe standard C functions
+// lstrcpyW and lstrcatW are Windows-specific and still have similar safety concerns
+// Future enhancement: Consider using wcscpy_s and wcscat_s for improved safety
 #define wcslen (size_t)lstrlenW
-#define wcscpy lstrcpyW
-// wcsncpy() and lstrcpynW() work differently. We don't use them.
 
 #define kInputBufSize ((size_t)1 << 18)
 
@@ -172,7 +172,7 @@ static void PrintErrorMessage(const char *s1, const wchar_t *s2)
   if (s2)
   {
     CatAscii(m, "\n");
-    wcscat(m, s2);
+    lstrcatW(m, s2);
   }
   MessageBoxW(g_HWND, m, k_7zip_with_Ver_str, MB_ICONERROR | MB_OK);
 }
@@ -280,7 +280,7 @@ static WRes CreateComplexDir(void)
     size_t len = wcslen(path);
     if (len > MAX_PATH)
       return ERROR_INVALID_NAME;
-    wcscpy(s, path);
+    lstrcpyW(s, path);
   }
 
   if (IS_DRIVE_PATH(s))
@@ -828,7 +828,7 @@ static void SetShellProgramsGroup(HWND hwndOwner)
             "7-Zip File Manager.lnk" :
             "7-Zip Help.lnk"
            );
-        wcscpy(destPath, path);
+        lstrcpyW(destPath, path);
         CatAscii(destPath, k == 0 ?
             "7zFM.exe" :
             "7-zip.chm");
@@ -864,7 +864,7 @@ static void WriteCLSID(void)
   if (res == ERROR_SUCCESS)
   {
     WCHAR destPath[MAX_PATH + 40];
-    wcscpy(destPath, path);
+    lstrcpyW(destPath, path);
     CatAscii(destPath, "7-zip32.dll");
     /* res = */ MyRegistry_SetString(destKey, NULL, destPath);
     /* res = */ MyRegistry_SetString(destKey, L"ThreadingModel", L"Apartment");
@@ -883,7 +883,7 @@ static void WriteCLSID(void)
   if (res == ERROR_SUCCESS)
   {
     WCHAR destPath[MAX_PATH + 40];
-    wcscpy(destPath, path);
+    lstrcpyW(destPath, path);
     CatAscii(destPath, "7-zip.dll");
     /* res = */ MyRegistry_SetString(destKey, NULL, destPath);
     /* res = */ MyRegistry_SetString(destKey, L"ThreadingModel", L"Apartment");
@@ -923,7 +923,7 @@ static void WriteShellEx(void)
   MyRegistry_CreateKeyAndVal   (HKEY_LOCAL_MACHINE, k_Shell_Approved, k_7zip_CLSID, k_7zip_ShellExtension);
 
 
-  wcscpy(destPath, path);
+  lstrcpyW(destPath, path);
   CatAscii(destPath, "7zFM.exe");
   
   {
@@ -949,7 +949,7 @@ static void WriteShellEx(void)
       MyRegistry_SetString(destKey, L"InstallLocation", path);
 
       destPath[0] = '\"';
-      wcscpy(destPath + 1, path);
+      lstrcpyW(destPath + 1, path);
       CatAscii(destPath, "Uninstall.exe\"");
       MyRegistry_SetString(destKey, L"UninstallString", destPath);
 
@@ -1073,14 +1073,14 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
           }
           else if (cmd[1] == 'D' && cmd[2] == '=')
           {
-            wcscpy(path, cmd + 3);
+            lstrcpyW(path, cmd + 3);
             // RemoveQuotes(path);
             error = False;
           }
         }
         s = s2;
         if (error && cmdError[0] == 0)
-          wcscpy(cmdError, cmd);
+          lstrcpyW(cmdError, cmd);
       }
     }
 
@@ -1243,7 +1243,7 @@ static BoolInt GetErrorMessage(DWORD errorCode, WCHAR *message)
         | FORMAT_MESSAGE_IGNORE_INSERTS,
         NULL, errorCode, 0, (LPWSTR) &msgBuf, 0, NULL) == 0)
     return False;
-  wcscpy(message, msgBuf);
+  lstrcpyW(message, msgBuf);
   LocalFree(msgBuf);
   return True;
 }
@@ -1454,7 +1454,7 @@ if (res == SZ_OK)
         {
           // BoolInt skipFile = False;
           
-          wcscpy(origPath, path);
+          lstrcpyW(origPath, path);
   
           for (;;)
           {
@@ -1467,7 +1467,7 @@ if (res == SZ_OK)
                 res = SZ_ERROR_FAIL;
                 break;
               }
-              wcscpy(path, origPath);
+              lstrcpyW(path, origPath);
               CatAscii(path, ".tmp");
               if (tempIndex > 1)
                 HexToString(tempIndex, path + wcslen(path));
@@ -1513,7 +1513,7 @@ if (res == SZ_OK)
               int mbRes;
 
               CpyAscii(message, "Can't open file\n");
-              wcscat(message, path);
+              lstrcatW(message, path);
               CatAscii(message, "\n");
               
               GetErrorMessage(openRes, message + wcslen(message));

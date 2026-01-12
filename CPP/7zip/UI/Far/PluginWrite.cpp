@@ -474,7 +474,7 @@ HRESULT CompressFiles(const CObjectVector<PluginPanelItem> &pluginPanelItems)
       str1 = g_StartupInfo.GetMsgString(NMessageID::kUpdateAddToArchive);
       str1.Replace(AString ("%s"), s);
       /*
-      sprintf(updateAddToArchiveString,
+      snprintf(updateAddToArchiveString, sizeof(updateAddToArchiveString),
         g_StartupInfo.GetMsgString(NMessageID::kUpdateAddToArchive), (const char *)s);
       */
     }

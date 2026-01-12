@@ -1321,7 +1321,7 @@ HRESULT CArc::ReadBasicProps(IInArchive *archive, UInt64 startPos, HRESULT openR
 static void PrintNumber(const char *s, int n)
 {
   char temp[100];
-  sprintf(temp, "%s %d", s, n);
+  snprintf(temp, sizeof(temp), "%s %d", s, n);
   // OutputDebugStringA(temp);
   printf(temp);
 }

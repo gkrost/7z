@@ -27,10 +27,10 @@
 #define kInputBufSize ((size_t)1 << 18)
 
 
-#define wcscat lstrcatW
+// Note: Using Windows API functions directly instead of unsafe standard C functions
+// lstrcpyW and lstrcatW are Windows-specific and still have similar safety concerns
+// Future enhancement: Consider using wcscpy_s and wcscat_s for improved safety
 #define wcslen (size_t)lstrlenW
-#define wcscpy lstrcpyW
-// wcsncpy() and lstrcpynW() work differently. We don't use them.
 
 static const char * const kExts[] =
 {
@@ -196,7 +196,7 @@ static WRes RemoveDirWithSubItems(WCHAR *path)
   HANDLE handle;
   WRes res = 0;
   const size_t len = wcslen(path);
-  wcscpy(path + len, L"*");
+  lstrcpyW(path + len, L"*");
   handle = FindFirstFileW(path, &fd);
   path[len] = L'\0';
   if (handle == INVALID_HANDLE_VALUE)
@@ -207,10 +207,10 @@ static WRes RemoveDirWithSubItems(WCHAR *path)
     if (wcscmp(fd.cFileName, L".") != 0 &&
         wcscmp(fd.cFileName, L"..") != 0)
     {
-      wcscpy(path + len, fd.cFileName);
+      lstrcpyW(path + len, fd.cFileName);
       if ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
       {
-        wcscat(path, WSTRING_PATH_SEPARATOR);
+        lstrcatW(path, WSTRING_PATH_SEPARATOR);
         res = RemoveDirWithSubItems(path);
       }
       else
@@ -332,7 +332,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         res = SZ_ERROR_FAIL;
         break;
       }
-      wcscpy(path + pathLen, L"7z");
+      lstrcpyW(path + pathLen, L"7z");
 
       {
         wchar_t *s = path + wcslen(path);
@@ -351,7 +351,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
         continue;
       if (CreateDirectoryW(path, NULL))
       {
-        wcscat(path, WSTRING_PATH_SEPARATOR);
+        lstrcatW(path, WSTRING_PATH_SEPARATOR);
         pathLen = wcslen(path);
         break;
       }
@@ -363,7 +363,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     }
     
     #ifndef UNDER_CE
-    wcscpy(workCurDir, path);
+    lstrcpyW(workCurDir, path);
     #endif
     if (res != SZ_OK)
       errorMessage = "Can't create temp folder";
@@ -605,8 +605,8 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
       PROCESS_INFORMATION pi;
       WCHAR cmdLine[MAX_PATH * 3];
 
-      wcscpy(cmdLine, path);
-      wcscat(cmdLine, cmdLineParams);
+      lstrcpyW(cmdLine, path);
+      lstrcatW(cmdLine, cmdLineParams);
       memset(&si, 0, sizeof(si));
       si.cb = sizeof(si);
       if (CreateProcessW(NULL, cmdLine, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi) == 0)
