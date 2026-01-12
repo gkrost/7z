@@ -1,4 +1,3 @@
-
 # Build artifacts and object files
 *.o
 *.obj
@@ -14,6 +13,7 @@ CPP/7zip/Bundles/*/_o/*
 b/
 _o/
 *.tmp
+CPP/7zip/Bundles/*/_o/*
 
 # Editor and IDE files
 .vscode/
@@ -39,3 +39,4 @@ test_framework.py.log
 
 # Generated issue files (can be regenerated from scripts)
 generated_issues/
+
