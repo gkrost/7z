@@ -129,6 +129,9 @@ else
                 lenLimit++;
                 {
                   CLzRef *ptr = son + ((size_t)(pos) << 1) - CYC_TO_POS_OFFSET * 2;
+                  // Using individual 32-bit copies for better portability
+                  // 64-bit direct copy disabled (may not be optimal on all platforms)
+                  // Change #if 0 to #if 1 to enable 64-bit copy
                   #if 0
                   *(UInt64 *)(void *)ptr = ((const UInt64 *)(const void *)ptr)[diff];
                   #else
@@ -337,6 +340,8 @@ else
                   const CLzRef *src = dest + ((diff
                       + (ptrdiff_t)(UInt32)((_cyclicBufferPos < delta) ? cbs : 0)) << 1);
                   // CLzRef *ptr = son + ((size_t)(pos) << 1) - CYC_TO_POS_OFFSET * 2;
+                  // Using individual 32-bit copies for better portability
+                  // 64-bit direct copy disabled. Change #if 0 to #if 1 to enable.
                   #if 0
                   *(UInt64 *)(void *)dest = *((const UInt64 *)(const void *)src);
                   #else
@@ -510,6 +515,8 @@ else
                   CLzRef *dest = son + ((size_t)_cyclicBufferPos << 1);
                   const CLzRef *src = dest + ((diff +
                       (ptrdiff_t)(UInt32)(_cyclicBufferPos < delta ? cbs : 0)) << 1);
+                // Using individual 32-bit copies for better portability
+                // 64-bit direct copy disabled. Change #if 0 to #if 1 to enable.
                 #if 0
                   *(UInt64 *)(void *)dest = *((const UInt64 *)(const void *)src);
                 #else
