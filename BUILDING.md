@@ -23,7 +23,7 @@ This guide provides detailed instructions for building 7-Zip from source on diff
 
 ### Linux/macOS
 
-- **GCC 7 or later** or **Clang 5 or later**
+- **GCC 7 or later** or **Clang 5 or later** (CI workflow uses GCC 15.2)
 - **Make** utility
 - **Optional**: Assembler for optimized builds
   - [Asmc Macro Assembler](https://github.com/nidud/asmc) (recommended for x86/x64)
