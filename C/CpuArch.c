@@ -3,8 +3,6 @@ Igor Pavlov : Public domain */
 
 #include "Precomp.h"
 
-// #include <stdio.h>
-
 #include "CpuArch.h"
 
 #ifdef MY_CPU_X86_OR_AMD64
@@ -305,79 +303,6 @@ BoolInt x86cpuid_Func_1(UInt32 *p)
   z7_x86_cpuid(p, 1);
   return True;
 }
-
-/*
-static const UInt32 kVendors[][1] =
-{
-  { 0x756E6547 }, // , 0x49656E69, 0x6C65746E },
-  { 0x68747541 }, // , 0x69746E65, 0x444D4163 },
-  { 0x746E6543 }  // , 0x48727561, 0x736C7561 }
-};
-*/
-
-/*
-typedef struct
-{
-  UInt32 maxFunc;
-  UInt32 vendor[3];
-  UInt32 ver;
-  UInt32 b;
-  UInt32 c;
-  UInt32 d;
-} Cx86cpuid;
-
-enum
-{
-  CPU_FIRM_INTEL,
-  CPU_FIRM_AMD,
-  CPU_FIRM_VIA
-};
-int x86cpuid_GetFirm(const Cx86cpuid *p);
-#define x86cpuid_ver_GetFamily(ver) (((ver >> 16) & 0xff0) | ((ver >> 8) & 0xf))
-#define x86cpuid_ver_GetModel(ver)  (((ver >> 12) &  0xf0) | ((ver >> 4) & 0xf))
-#define x86cpuid_ver_GetStepping(ver) (ver & 0xf)
-
-int x86cpuid_GetFirm(const Cx86cpuid *p)
-{
-  unsigned i;
-  for (i = 0; i < sizeof(kVendors) / sizeof(kVendors[0]); i++)
-  {
-    const UInt32 *v = kVendors[i];
-    if (v[0] == p->vendor[0]
-        // && v[1] == p->vendor[1]
-        // && v[2] == p->vendor[2]
-        )
-      return (int)i;
-  }
-  return -1;
-}
-
-BoolInt CPU_Is_InOrder()
-{
-  Cx86cpuid p;
-  UInt32 family, model;
-  if (!x86cpuid_CheckAndRead(&p))
-    return True;
-
-  family = x86cpuid_ver_GetFamily(p.ver);
-  model = x86cpuid_ver_GetModel(p.ver);
-
-  switch (x86cpuid_GetFirm(&p))
-  {
-    case CPU_FIRM_INTEL: return (family < 6 || (family == 6 && (
-        // In-Order Atom CPU
-           model == 0x1C  // 45 nm, N4xx, D4xx, N5xx, D5xx, 230, 330
-        || model == 0x26  // 45 nm, Z6xx
-        || model == 0x27  // 32 nm, Z2460
-        || model == 0x35  // 32 nm, Z2760
-        || model == 0x36  // 32 nm, N2xxx, D2xxx
-        )));
-    case CPU_FIRM_AMD: return (family < 5 || (family == 5 && (model < 6 || model == 0xA)));
-    case CPU_FIRM_VIA: return (family < 6 || (family == 6 && model < 0xF));
-  }
-  return False; // v23 : unknown processors are not In-Order
-}
-*/
 
 #ifdef _WIN32
 #include "7zWindows.h"

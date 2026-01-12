@@ -8,7 +8,6 @@
 #if !defined(Z7_CRC64_NUM_TABLES) || Z7_CRC64_NUM_TABLES > 1
 
 // for debug only : define Z7_CRC64_DEBUG_BE to test big-endian code in little-endian cpu
-// #define Z7_CRC64_DEBUG_BE
 #ifdef Z7_CRC64_DEBUG_BE
 #undef MY_CPU_LE
 #define MY_CPU_BE
