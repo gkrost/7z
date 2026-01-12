@@ -56,6 +56,21 @@ Add extra base flags:
 python3 scripts/bench/evo_flags.py --base-flags "-pipe" --generations 6 --population 6
 ```
 
+## Stability tips
+
+Pin CPU frequency (requires root):
+
+```
+sudo cpupower frequency-set -g performance
+sudo cpupower frequency-set -u 4.8GHz -d 4.8GHz
+```
+
+Bind benchmark to specific cores:
+
+```
+taskset -c 0-7 python3 scripts/bench/evo_flags.py --generations 6 --population 6
+```
+
 ## Notes
 
 - The GA explores pools defined near the top of `scripts/bench/evo_flags.py`.
