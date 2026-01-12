@@ -94,7 +94,7 @@ for issue_file in "$ISSUES_DIR"/issue-*.md; do
         --repo "$REPO" \
         --title "$title" \
         --body "$body" \
-        --label "$labels"; then
+        --label "$labels" < /dev/null; then
         echo -e "${GREEN}✓ Created issue: $title${NC}"
         ((created++))
     else
