@@ -135,7 +135,7 @@ UInt32 Z7_FASTCALL z7_x86_cpuid_GetMaxFunc(void)
  * 
  * PLATFORM: x86 32-bit MSVC only
  * ALTERNATIVES: 
- *   - x64 MSVC: Uses __cpuid() intrinsic (see line 281)
+ *   - x64 MSVC: Uses __cpuid() intrinsic (see line 395)
  *   - GCC/CLANG: Uses inline asm (see line 64)
  * 
  * TECHNICAL DETAILS:
@@ -201,7 +201,7 @@ UInt32 __declspec(naked) Z7_FASTCALL z7_x86_cpuid_GetMaxFunc(void)
  * 
  * PLATFORM: x86 32-bit MSVC only
  * ALTERNATIVES: 
- *   - x64 MSVC: Uses __cpuid() intrinsic (see line 275)
+ *   - x64 MSVC: Uses __cpuid() intrinsic (see line 395)
  *   - GCC/CLANG: Uses inline asm (see line 51)
  * 
  * TECHNICAL DETAILS:
@@ -264,7 +264,7 @@ void __declspec(naked) Z7_FASTCALL z7_x86_cpuid(UInt32 p[4], UInt32 func)
  * 
  * PLATFORM: x86 32-bit MSVC only
  * ALTERNATIVES: 
- *   - x64 MSVC: Uses __cpuidex() intrinsic (see line 209 or 264)
+ *   - x64 MSVC: Uses __cpuidex() intrinsic (see line 329)
  *   - GCC/CLANG: Uses inline asm (see line 57)
  * 
  * TECHNICAL DETAILS:
