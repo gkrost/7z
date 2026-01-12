@@ -92,6 +92,60 @@ static UInt64 Xxh64_Merge(UInt64 acc, UInt64 val)
 #define Z7_XXH_PRIME64_2_HIGH  0xC2B2AE3D
 #define Z7_XXH_PRIME64_2_LOW   0x27D4EB4F
 
+/*
+ * Xxh64State_UpdateBlocks() - Update XXH64 hash state with data blocks
+ * 
+ * This function uses __declspec(naked) for x86 32-bit MSVC builds to:
+ * 1. Optimize 64-bit arithmetic operations on 32-bit platform
+ * 2. Avoid expensive __allmul runtime library calls for 64-bit multiplication
+ * 3. Implement FASTCALL convention manually with full control over registers
+ * 4. Maximize performance for hash calculation hot path
+ * 
+ * PARAMETERS:
+ *   - p: Pointer to XXH64 state structure (4 x UInt64 accumulators)
+ *   - data: Pointer to input data to hash
+ *   - end: Pointer to end of data (must be 32-byte aligned)
+ * 
+ * PLATFORM: x86 32-bit MSVC only (Z7_XXH64_USE_ASM is defined)
+ * ALTERNATIVES:
+ *   - All other platforms: Uses portable C implementation (see line 194)
+ * 
+ * WHY NAKED FUNCTION IS USED:
+ *   On x86 32-bit, 64-bit multiplication is expensive - MSVC typically generates
+ *   calls to __allmul runtime library function. This naked assembly implementation
+ *   uses inline MUL/IMUL instructions to avoid the overhead, providing significant
+ *   performance improvement for hash calculations (which do many 64-bit multiplies).
+ * 
+ * TECHNICAL DETAILS:
+ *   - FASTCALL convention: first param (p) in ECX, second param (data) in EDX
+ *   - Third parameter (end) is passed on stack
+ *   - Processes 32-byte blocks (4 x 8-byte values) per iteration
+ *   - Uses manual 64-bit arithmetic via 32-bit register pairs
+ *   - Implements XXH64 round function: acc += input * PRIME64_2; acc = rotl(acc, 31); acc *= PRIME64_1
+ * 
+ * ASSEMBLY ORGANIZATION:
+ *   1. Save callee-saved registers (EBX, EBP, ESI, EDI)
+ *   2. Allocate stack space and copy state to stack
+ *   3. Main loop: process 32-byte blocks with optimized 64-bit multiply
+ *   4. Copy updated state back to output structure
+ *   5. Restore registers and return
+ * 
+ * PERFORMANCE IMPACT:
+ *   This assembly implementation is significantly faster than the C version on
+ *   x86 32-bit due to avoiding __allmul calls and optimized register usage.
+ *   The performance difference is substantial for hash-intensive workloads.
+ * 
+ * CAUTION: This is highly optimized assembly code for x86 32-bit only.
+ * Changes to this function require careful testing to avoid stack corruption,
+ * register clobbering, or incorrect hash calculations. The naked attribute means
+ * the compiler generates NO function prologue/epilogue, so all stack and register
+ * management must be done manually in assembly.
+ * 
+ * MAINTENANCE: Do not modify unless absolutely necessary. This code works
+ * correctly and provides critical performance optimization for x86 32-bit builds.
+ * Any changes must be verified with hash correctness tests and performance
+ * benchmarks. Consider this working legacy code that should remain stable.
+ */
 void
 Z7_NO_INLINE
 __declspec(naked)

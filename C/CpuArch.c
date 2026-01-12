@@ -125,6 +125,34 @@ UInt32 Z7_FASTCALL z7_x86_cpuid_GetMaxFunc(void)
 
 #if !defined(MY_CPU_AMD64)
 
+/*
+ * z7_x86_cpuid_GetMaxFunc() - Get maximum supported CPUID function number
+ * 
+ * This function uses __declspec(naked) for x86 32-bit MSVC builds to:
+ * 1. Minimize function overhead (no prologue/epilogue)
+ * 2. Implement custom calling convention for CPUID detection
+ * 3. Properly check for CPUID support on very old CPUs (pre-Pentium)
+ * 
+ * PLATFORM: x86 32-bit MSVC only
+ * ALTERNATIVES: 
+ *   - x64 MSVC: Uses __cpuid() intrinsic (see line 281)
+ *   - GCC/CLANG: Uses inline asm (see line 64)
+ * 
+ * TECHNICAL DETAILS:
+ *   - Tests if CPUID instruction is supported by toggling EFLAGS bit 21
+ *   - If supported, executes CPUID(0) to get maximum function number
+ *   - Returns maximum supported CPUID function number (or 0 if not supported)
+ * 
+ * CAUTION: This is legacy assembly code for x86 32-bit only.
+ * Changes to this function require careful testing to avoid stack corruption
+ * or register clobbering. The naked attribute means the compiler generates
+ * NO function prologue/epilogue, so all stack and register management must
+ * be done manually in assembly.
+ * 
+ * MAINTENANCE: Do not modify unless absolutely necessary. This code works
+ * correctly and is only used on legacy x86 32-bit MSVC builds. Consider
+ * this working legacy code that should remain stable.
+ */
 UInt32 __declspec(naked) Z7_FASTCALL z7_x86_cpuid_GetMaxFunc(void)
 {
   #if defined(NEED_CHECK_FOR_CPUID)
@@ -159,6 +187,48 @@ UInt32 __declspec(naked) Z7_FASTCALL z7_x86_cpuid_GetMaxFunc(void)
   __asm   ret 0
 }
 
+/*
+ * z7_x86_cpuid() - Execute CPUID instruction on x86
+ * 
+ * This function uses __declspec(naked) for x86 32-bit MSVC builds to:
+ * 1. Properly preserve EBX register (required in PIC code and calling conventions)
+ * 2. Implement FASTCALL convention manually with full control over registers
+ * 3. Avoid compiler-generated prologue/epilogue for minimal overhead
+ * 
+ * PARAMETERS:
+ *   - p[4]: Output array for CPUID results (EAX, EBX, ECX, EDX in that order)
+ *   - func: CPUID function number to query
+ * 
+ * PLATFORM: x86 32-bit MSVC only
+ * ALTERNATIVES: 
+ *   - x64 MSVC: Uses __cpuid() intrinsic (see line 275)
+ *   - GCC/CLANG: Uses inline asm (see line 51)
+ * 
+ * TECHNICAL DETAILS:
+ *   - FASTCALL convention: first param (p) in ECX, second param (func) in EDX
+ *   - Preserves EBX and EDI registers (callee-saved in x86 calling conventions)
+ *   - Executes CPUID with ECX=0 (subfunction parameter)
+ *   - Stores all four CPUID output registers to the output array
+ * 
+ * ASSEMBLY FLOW:
+ *   1. Push EBX and EDI (callee-saved registers)
+ *   2. Move p (from ECX) to EDI, func (from EDX) to EAX
+ *   3. Clear ECX (subfunction = 0 for basic CPUID calls)
+ *   4. Execute CPUID instruction
+ *   5. Store EAX, EBX, ECX, EDX to output array at [EDI]
+ *   6. Restore EDI and EBX
+ *   7. Return (FASTCALL uses ret 0, callee cleans stack)
+ * 
+ * CAUTION: This is legacy assembly code for x86 32-bit only.
+ * Changes to this function require careful testing to avoid stack corruption
+ * or register clobbering. The naked attribute means the compiler generates
+ * NO function prologue/epilogue, so all stack and register management must
+ * be done manually in assembly.
+ * 
+ * MAINTENANCE: Do not modify unless absolutely necessary. This code works
+ * correctly and is only used on legacy x86 32-bit MSVC builds. Consider
+ * this working legacy code that should remain stable.
+ */
 void __declspec(naked) Z7_FASTCALL z7_x86_cpuid(UInt32 p[4], UInt32 func)
 {
   UNUSED_VAR(p)
@@ -178,6 +248,56 @@ void __declspec(naked) Z7_FASTCALL z7_x86_cpuid(UInt32 p[4], UInt32 func)
   __asm   ret     0
 }
 
+/*
+ * z7_x86_cpuid_subFunc() - Execute CPUID instruction with subfunction
+ * 
+ * This function uses __declspec(naked) for x86 32-bit MSVC builds to:
+ * 1. Properly preserve EBX register (required in PIC code and calling conventions)
+ * 2. Implement FASTCALL convention manually for 3-parameter function
+ * 3. Avoid compiler-generated prologue/epilogue for minimal overhead
+ * 4. Pass subfunction parameter in ECX to CPUID instruction
+ * 
+ * PARAMETERS:
+ *   - p[4]: Output array for CPUID results (EAX, EBX, ECX, EDX in that order)
+ *   - func: CPUID function number to query
+ *   - subFunc: CPUID subfunction number (passed in ECX to CPUID)
+ * 
+ * PLATFORM: x86 32-bit MSVC only
+ * ALTERNATIVES: 
+ *   - x64 MSVC: Uses __cpuidex() intrinsic (see line 209 or 264)
+ *   - GCC/CLANG: Uses inline asm (see line 57)
+ * 
+ * TECHNICAL DETAILS:
+ *   - FASTCALL convention: first param (p) in ECX, second param (func) in EDX
+ *   - Third parameter (subFunc) is passed on stack at [esp+12] after pushes
+ *   - Preserves EBX and EDI registers (callee-saved in x86 calling conventions)
+ *   - Executes CPUID with ECX=subFunc (for functions that use subfunctions like func=7)
+ *   - Stores all four CPUID output registers to the output array
+ * 
+ * ASSEMBLY FLOW:
+ *   1. Push EBX and EDI (callee-saved registers)
+ *   2. Move p (from ECX) to EDI, func (from EDX) to EAX
+ *   3. Load subFunc from stack ([esp+12]) into ECX
+ *   4. Execute CPUID instruction
+ *   5. Store EAX, EBX, ECX, EDX to output array at [EDI]
+ *   6. Restore EDI and EBX
+ *   7. Return with ret 4 (FASTCALL callee cleans 4-byte stack parameter)
+ * 
+ * WHY SUBFUNCTION IS NEEDED:
+ *   Some CPUID functions (e.g., func=7 for extended features, func=4 for cache info)
+ *   require a subfunction parameter in ECX. This function allows calling those
+ *   advanced CPUID functions correctly.
+ * 
+ * CAUTION: This is legacy assembly code for x86 32-bit only.
+ * Changes to this function require careful testing to avoid stack corruption
+ * or register clobbering. The naked attribute means the compiler generates
+ * NO function prologue/epilogue, so all stack and register management must
+ * be done manually in assembly.
+ * 
+ * MAINTENANCE: Do not modify unless absolutely necessary. This code works
+ * correctly and is only used on legacy x86 32-bit MSVC builds. Consider
+ * this working legacy code that should remain stable.
+ */
 static
 void __declspec(naked) Z7_FASTCALL z7_x86_cpuid_subFunc(UInt32 p[4], UInt32 func, UInt32 subFunc)
 {
