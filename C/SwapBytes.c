@@ -27,9 +27,7 @@ typedef UInt32 CSwapUInt32;
       #define SWAP_ATTRIB_SSSE3 __attribute__((__target__("ssse3")))
       #define SWAP_ATTRIB_AVX2  __attribute__((__target__("avx2")))
   #elif defined(_MSC_VER)
-    #if (_MSC_VER == 1900)
-      #pragma warning(disable : 4752) // found Intel(R) Advanced Vector Extensions; consider using /arch:AVX
-    #endif
+    // VS2017+ provides the intrinsics we need for the AVX2 implementation.
     #define k_SwapBytes_Mode_MAX  k_SwapBytes_Mode_AVX2
   #endif // _MSC_VER
 
@@ -589,14 +587,12 @@ SwapBytes4_64(CSwapUInt32 *items, const CSwapUInt32 *lim)
     // asm ("rev16 %r0,%r0" : "+r" (a));  // for gcc
 #endif
 
-#elif defined(_MSC_VER) && (_MSC_VER < 1300) && defined(MY_CPU_X86) \
-    || !defined(Z7_CPU_FAST_BSWAP_SUPPORTED) \
+#elif !defined(Z7_CPU_FAST_BSWAP_SUPPORTED) \
     || !defined(Z7_CPU_FAST_ROTATE_SUPPORTED)
-  // old msvc doesn't support _byteswap_ulong()
   #define SWAP2_32_VAR(v) \
     v = ((v & 0xff00ff) << 8) + ((v >> 8) & 0xff00ff);
 
-#else  // is not ARM and is not old-MSVC-X86 and fast BSWAP/ROTATE are supported
+#else  // is not ARM and fast BSWAP/ROTATE are supported
   #define SWAP2_32_VAR(v) \
     v = Z7_BSWAP32(v); \
     v = rotlFixed(v, 16);

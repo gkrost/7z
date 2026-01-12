@@ -82,11 +82,11 @@ nmake
 
 ### Method 2: Visual Studio IDE
 
-1. Open the `.dsp` file for the component you want to build in Visual Studio
-2. Select the configuration (Debug or Release)
-3. Build the project
+The upstream build uses `nmake` makefiles. For IDE-based development/debugging,
+create a Visual Studio **NMake** project (or open a folder) and point it at the
+same `nmake` commands you use on the command line.
 
-**Note**: IDE compilation is useful for development and debugging, but final binaries should be built via makefiles for optimal performance.
+**Note**: IDE usage is convenient for development and debugging, but release binaries should be built via `nmake` for consistent results.
 
 ### Build Options for Windows
 

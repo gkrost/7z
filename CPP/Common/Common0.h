@@ -19,31 +19,15 @@ predefined macros defined in "Common.h".
 
 #ifdef _MSC_VER
   #pragma warning(disable : 4710) // function not inlined
-  // 'CUncopyable::CUncopyable':
-  #pragma warning(disable : 4514) // unreferenced inline function has been removed
-
-// -Wall warnings
-
-// #pragma warning(disable : 4061) // enumerator '' in switch of enum '' is not explicitly handled by a case label
-// #pragma warning(disable : 4266) // no override available for virtual member function from base ''; function is hidden
-#pragma warning(disable : 4625) // copy constructor was implicitly defined as deleted
-#pragma warning(disable : 4626) // assignment operator was implicitly defined as deleted
-#pragma warning(disable : 4365) // 'initializing' : conversion from 'int' to 'unsigned int', signed / unsigned mismatch
-
-#if _MSC_VER >= 1900
-#pragma warning(disable : 5026) // move constructor was implicitly defined as deleted
-#pragma warning(disable : 5027) // move assignment operator was implicitly defined as deleted
-#endif
-#if _MSC_VER >= 1912
-#pragma warning(disable : 5039) // pointer or reference to potentially throwing function passed to 'extern "C"' function under - EHc.Undefined behavior may occur if this function throws an exception.
-#endif
-#if _MSC_VER >= 1925
-// #pragma warning(disable : 5204) // 'ISequentialInStream' : class has virtual functions, but its trivial destructor is not virtual; instances of objects derived from this class may not be destructed correctly
-#endif
-#if _MSC_VER >= 1934
-// #pragma warning(disable : 5264) // const variable is not used
-#endif
-
+  // -Wall warnings
+  #pragma warning(disable : 4625) // copy constructor was implicitly defined as deleted
+  #pragma warning(disable : 4626) // assignment operator was implicitly defined as deleted
+  #pragma warning(disable : 4365) // conversion from 'int' to 'unsigned int'
+  #pragma warning(disable : 5026) // move constructor was implicitly defined as deleted
+  #pragma warning(disable : 5027) // move assignment operator was implicitly defined as deleted
+  #if _MSC_VER >= 1912
+    #pragma warning(disable : 5039) // pointer/reference to potentially throwing function passed to extern "C"
+  #endif
 #endif // _MSC_VER
 
 
@@ -127,11 +111,7 @@ if compiled with new GCC libstdc++, GCC libstdc++ can use:
 #endif
 
 
-/* There is BUG in MSVC 6.0 compiler for operator new[]:
-   It doesn't check overflow, when it calculates size in bytes for allocated array.
-   So we can use Z7_ARRAY_NEW macro instead of new[] operator.
-   This is no longer needed with VS 2017+. */
-
+// Legacy MSVC workarounds (VS6 era) were removed.
 #define Z7_ARRAY_NEW(p, T, size)  p = new T[size];
 
 #if (defined(__GNUC__) && (__GNUC__ >= 8))
@@ -142,7 +122,7 @@ if compiled with new GCC libstdc++, GCC libstdc++ can use:
   #else
     #define Z7_ATTR_NORETURN  __attribute__((noreturn))
   #endif
-#elif (defined(_MSC_VER) && (_MSC_VER >= 1900))
+#elif (defined(_MSC_VER) && (_MSC_VER >= 1910))
   #define Z7_ATTR_NORETURN  [[noreturn]]
 #else
   #define Z7_ATTR_NORETURN
@@ -248,7 +228,7 @@ _Pragma("GCC diagnostic pop")
 #define Z7_PURE_INTERFACES_END
 #endif
 
-// NewHandler.h and NewHandler.cpp handle operator new() for compatibility
+// NewHandler.h documents standard operator new() behavior.
 #include "NewHandler.h"
 
 /*

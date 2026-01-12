@@ -15,11 +15,6 @@
 #pragma warning(push)
 #pragma warning(disable : 4668) // '_WIN32_WINNT' is not defined as a preprocessor macro, replacing with '0' for '#if/#elif'
 
-#if _MSC_VER == 1900
-// for old kit10 versions
-// #pragma warning(disable : 4255) // winuser.h(13979): warning C4255: 'GetThreadDpiAwarenessContext':
-#endif
-// win10 Windows Kit:
 #endif // _MSC_VER
 
 #if defined(__MINGW32__) || defined(__MINGW64__)
@@ -31,8 +26,6 @@
 // #include <basetsd.h>
 // #include <wtypes.h>
 
-// but if precompiled with clang-cl then we need
-// #include <windows.h>
 #if defined(_MSC_VER)
 #pragma warning(pop)
 #endif
@@ -41,16 +34,12 @@
 # pragma clang diagnostic pop
 #endif
 
+
+// Legacy MSVC/SDK workarounds (VS2005 and earlier) were removed.
+
 #ifdef UNDER_CE
 #undef  VARIANT_TRUE
 #define VARIANT_TRUE ((VARIANT_BOOL)-1)
-#endif
-
-
-#if defined(_MSC_VER)
-  // BaseTsd.h(148) : 'HandleToULong' : unreferenced inline function has been removed
-  // string.h
-  // #pragma warning(disable : 4514)
 #endif
 
 

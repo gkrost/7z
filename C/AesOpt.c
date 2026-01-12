@@ -661,9 +661,7 @@ VAES_COMPAT_STUB (AesCtr_Code_HW)
 #ifdef USE_HW_AES
 
 // #pragma message("=== AES HW === ")
-// Note: We check both __ARM_FEATURE_AES (preferred) and __ARM_FEATURE_CRYPTO (deprecated).
-// __ARM_FEATURE_CRYPTO macro is deprecated in favor of the finer grained feature macro __ARM_FEATURE_AES.
-// We keep __ARM_FEATURE_CRYPTO as a fallback for backward compatibility with older compilers.
+// __ARM_FEATURE_CRYPTO macro is deprecated in favor of the finer grained feature macro __ARM_FEATURE_AES
 
 #if defined(__clang__) || defined(__GNUC__)
 #if !defined(__ARM_FEATURE_AES) && \

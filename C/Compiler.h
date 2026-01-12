@@ -16,6 +16,12 @@
 #endif
 
 #ifdef _MSC_VER
+
+// Windows builds require at least Visual Studio 2017.
+// MSVC version mapping: VS2017 starts at _MSC_VER == 1910.
+#if _MSC_VER < 1910
+  #error "Visual Studio 2017 (MSVC 19.10, _MSC_VER >= 1910) or newer is required."
+#endif
 #if !defined(__clang__) && !defined(__GNUC__)
 #define Z7_MSC_VER_ORIGINAL _MSC_VER
 #endif

@@ -207,9 +207,7 @@ void Z7_FASTCALL Sha1_UpdateBlocks_HW(UInt32 state[5], const Byte *data, size_t 
 #ifdef USE_HW_SHA
 
 // #pragma message("=== Sha1 HW === ")
-// Note: We check both __ARM_FEATURE_SHA2 (preferred) and __ARM_FEATURE_CRYPTO (deprecated).
-// __ARM_FEATURE_CRYPTO macro is deprecated in favor of the finer grained feature macro __ARM_FEATURE_SHA2.
-// We keep __ARM_FEATURE_CRYPTO as a fallback for backward compatibility with older compilers.
+// __ARM_FEATURE_CRYPTO macro is deprecated in favor of the finer grained feature macro __ARM_FEATURE_SHA2
 
 #if defined(__clang__) || defined(__GNUC__)
 #if !defined(__ARM_FEATURE_SHA2) && \
