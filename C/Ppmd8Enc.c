@@ -46,9 +46,6 @@ void Ppmd8_Flush_RangeEnc(CPpmd8 *p)
 #define RC_NORM_LOCAL(p)    // RC_NORM(p)
 #define RC_NORM_REMOTE(p)   RC_NORM(p)
 
-// #define RC_PRE(total) p->Range /= total;
-// #define RC_PRE(total)
-
 #define R p
 
 

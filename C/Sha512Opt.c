@@ -5,7 +5,6 @@
 #include "Compiler.h"
 #include "CpuArch.h"
 
-// #define Z7_USE_HW_SHA_STUB // for debug
 #ifdef MY_CPU_X86_OR_AMD64
   #if defined(__INTEL_COMPILER) && (__INTEL_COMPILER >= 2400) && (__INTEL_COMPILER <= 9900) // fix it
       #define USE_HW_SHA
@@ -23,12 +22,10 @@
     #if (_MSC_VER >= 1940)
       #define USE_HW_SHA
     #else
-      // #define Z7_USE_HW_SHA_STUB
     #endif
   #endif
 // #endif // MY_CPU_X86_OR_AMD64
 #ifndef USE_HW_SHA
-  // #define Z7_USE_HW_SHA_STUB // for debug
 #endif
 
 #ifdef USE_HW_SHA
@@ -147,7 +144,6 @@ void Z7_FASTCALL Sha512_UpdateBlocks_HW(UInt64 state[8], const Byte *data, size_
     __m256i state0_save, state1_save;
     __m256i m0, m1, m2, m3;
     __m256i msg;
-    // #define msg tmp
 
     state0_save = state0;
     state1_save = state1;

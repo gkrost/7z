@@ -3,8 +3,6 @@ Igor Pavlov : Public domain */
 
 #include "Precomp.h"
 
-// #include <stdio.h>
-
 #include "CpuArch.h"
 
 #ifdef MY_CPU_X86_OR_AMD64
@@ -28,56 +26,25 @@ Igor Pavlov : Public domain */
 #if defined(__GNUC__) /* && (__GNUC__ >= 10) */ \
     || defined(__clang__) /* && (__clang_major__ >= 10) */
 
-/* there was some CLANG/GCC compilers that have issues with
-   rbx(ebx) handling in asm blocks in -fPIC mode (__PIC__ is defined).
-   compiler's <cpuid.h> contains the macro __cpuid() that is similar to our code.
-   The history of __cpuid() changes in CLANG/GCC:
-   GCC:
-     2007: it preserved ebx for (__PIC__ && __i386__)
-     2013: it preserved rbx and ebx for __PIC__
-     2014: it doesn't preserves rbx and ebx anymore
-     we suppose that (__GNUC__ >= 5) fixed that __PIC__ ebx/rbx problem.
-   CLANG:
-     2014+: it preserves rbx, but only for 64-bit code. No __PIC__ check.
-   Why CLANG cares about 64-bit mode only, and doesn't care about ebx (in 32-bit)?
-   Do we need __PIC__ test for CLANG or we must care about rbx even if
-   __PIC__ is not defined?
+/* Minimum GCC version requirement: 13.4
+   GCC 13.4 is the lowest version still maintained by the GCC team.
+   All workarounds for older GCC versions have been removed.
 */
+#if defined(__GNUC__) && !defined(__clang__)
+  #if __GNUC__ < 13 || (__GNUC__ == 13 && __GNUC_MINOR__ < 4)
+    #error "GCC 13.4 or newer is required. Please upgrade your compiler."
+  #endif
+#endif
 
 #define ASM_LN "\n"
-   
-#if defined(MY_CPU_AMD64) && defined(__PIC__) \
-    && ((defined (__GNUC__) && (__GNUC__ < 5)) || defined(__clang__))
 
-  /* "=&r" selects free register. It can select even rbx, if that register is free.
-     "=&D" for (RDI) also works, but the code can be larger with "=&D"
-     "2"(subFun) : 2 is (zero-based) index in the output constraint list "=c" (ECX). */
-
-#define x86_cpuid_MACRO_2(p, func, subFunc) { \
-  __asm__ __volatile__ ( \
-    ASM_LN   "mov     %%rbx, %q1"  \
-    ASM_LN   "cpuid"               \
-    ASM_LN   "xchg    %%rbx, %q1"  \
-    : "=a" ((p)[0]), "=&r" ((p)[1]), "=c" ((p)[2]), "=d" ((p)[3]) : "0" (func), "2"(subFunc)); }
-
-#elif defined(MY_CPU_X86) && defined(__PIC__) \
-    && ((defined (__GNUC__) && (__GNUC__ < 5)) || defined(__clang__))
-
-#define x86_cpuid_MACRO_2(p, func, subFunc) { \
-  __asm__ __volatile__ ( \
-    ASM_LN   "mov     %%ebx, %k1"  \
-    ASM_LN   "cpuid"               \
-    ASM_LN   "xchg    %%ebx, %k1"  \
-    : "=a" ((p)[0]), "=&r" ((p)[1]), "=c" ((p)[2]), "=d" ((p)[3]) : "0" (func), "2"(subFunc)); }
-
-#else
-
+/* Standard cpuid implementation without legacy workarounds.
+   GCC 13.4+ and modern Clang handle cpuid correctly without special handling.
+*/
 #define x86_cpuid_MACRO_2(p, func, subFunc) { \
   __asm__ __volatile__ ( \
     ASM_LN   "cpuid"               \
     : "=a" ((p)[0]), "=b" ((p)[1]), "=c" ((p)[2]), "=d" ((p)[3]) : "0" (func), "2"(subFunc)); }
-
-#endif
 
 #define x86_cpuid_MACRO(p, func)  x86_cpuid_MACRO_2(p, func, 0)
 
@@ -158,6 +125,34 @@ UInt32 Z7_FASTCALL z7_x86_cpuid_GetMaxFunc(void)
 
 #if !defined(MY_CPU_AMD64)
 
+/*
+ * z7_x86_cpuid_GetMaxFunc() - Get maximum supported CPUID function number
+ * 
+ * This function uses __declspec(naked) for x86 32-bit MSVC builds to:
+ * 1. Minimize function overhead (no prologue/epilogue)
+ * 2. Implement custom calling convention for CPUID detection
+ * 3. Properly check for CPUID support on very old CPUs (pre-Pentium)
+ * 
+ * PLATFORM: x86 32-bit MSVC only
+ * ALTERNATIVES: 
+ *   - x64 MSVC: Uses __cpuid() intrinsic (see line 395)
+ *   - GCC/CLANG: Uses inline asm (see line 64)
+ * 
+ * TECHNICAL DETAILS:
+ *   - Tests if CPUID instruction is supported by toggling EFLAGS bit 21
+ *   - If supported, executes CPUID(0) to get maximum function number
+ *   - Returns maximum supported CPUID function number (or 0 if not supported)
+ * 
+ * CAUTION: This is legacy assembly code for x86 32-bit only.
+ * Changes to this function require careful testing to avoid stack corruption
+ * or register clobbering. The naked attribute means the compiler generates
+ * NO function prologue/epilogue, so all stack and register management must
+ * be done manually in assembly.
+ * 
+ * MAINTENANCE: Do not modify unless absolutely necessary. This code works
+ * correctly and is only used on legacy x86 32-bit MSVC builds. Consider
+ * this working legacy code that should remain stable.
+ */
 UInt32 __declspec(naked) Z7_FASTCALL z7_x86_cpuid_GetMaxFunc(void)
 {
   #if defined(NEED_CHECK_FOR_CPUID)
@@ -192,6 +187,48 @@ UInt32 __declspec(naked) Z7_FASTCALL z7_x86_cpuid_GetMaxFunc(void)
   __asm   ret 0
 }
 
+/*
+ * z7_x86_cpuid() - Execute CPUID instruction on x86
+ * 
+ * This function uses __declspec(naked) for x86 32-bit MSVC builds to:
+ * 1. Properly preserve EBX register (required in PIC code and calling conventions)
+ * 2. Implement FASTCALL convention manually with full control over registers
+ * 3. Avoid compiler-generated prologue/epilogue for minimal overhead
+ * 
+ * PARAMETERS:
+ *   - p[4]: Output array for CPUID results (EAX, EBX, ECX, EDX in that order)
+ *   - func: CPUID function number to query
+ * 
+ * PLATFORM: x86 32-bit MSVC only
+ * ALTERNATIVES: 
+ *   - x64 MSVC: Uses __cpuid() intrinsic (see line 395)
+ *   - GCC/CLANG: Uses inline asm (see line 51)
+ * 
+ * TECHNICAL DETAILS:
+ *   - FASTCALL convention: first param (p) in ECX, second param (func) in EDX
+ *   - Preserves EBX and EDI registers (callee-saved in x86 calling conventions)
+ *   - Executes CPUID with ECX=0 (subfunction parameter)
+ *   - Stores all four CPUID output registers to the output array
+ * 
+ * ASSEMBLY FLOW:
+ *   1. Push EBX and EDI (callee-saved registers)
+ *   2. Move p (from ECX) to EDI, func (from EDX) to EAX
+ *   3. Clear ECX (subfunction = 0 for basic CPUID calls)
+ *   4. Execute CPUID instruction
+ *   5. Store EAX, EBX, ECX, EDX to output array at [EDI]
+ *   6. Restore EDI and EBX
+ *   7. Return (FASTCALL uses ret 0, callee cleans stack)
+ * 
+ * CAUTION: This is legacy assembly code for x86 32-bit only.
+ * Changes to this function require careful testing to avoid stack corruption
+ * or register clobbering. The naked attribute means the compiler generates
+ * NO function prologue/epilogue, so all stack and register management must
+ * be done manually in assembly.
+ * 
+ * MAINTENANCE: Do not modify unless absolutely necessary. This code works
+ * correctly and is only used on legacy x86 32-bit MSVC builds. Consider
+ * this working legacy code that should remain stable.
+ */
 void __declspec(naked) Z7_FASTCALL z7_x86_cpuid(UInt32 p[4], UInt32 func)
 {
   UNUSED_VAR(p)
@@ -211,6 +248,56 @@ void __declspec(naked) Z7_FASTCALL z7_x86_cpuid(UInt32 p[4], UInt32 func)
   __asm   ret     0
 }
 
+/*
+ * z7_x86_cpuid_subFunc() - Execute CPUID instruction with subfunction
+ * 
+ * This function uses __declspec(naked) for x86 32-bit MSVC builds to:
+ * 1. Properly preserve EBX register (required in PIC code and calling conventions)
+ * 2. Implement FASTCALL convention manually for 3-parameter function
+ * 3. Avoid compiler-generated prologue/epilogue for minimal overhead
+ * 4. Pass subfunction parameter in ECX to CPUID instruction
+ * 
+ * PARAMETERS:
+ *   - p[4]: Output array for CPUID results (EAX, EBX, ECX, EDX in that order)
+ *   - func: CPUID function number to query
+ *   - subFunc: CPUID subfunction number (passed in ECX to CPUID)
+ * 
+ * PLATFORM: x86 32-bit MSVC only
+ * ALTERNATIVES: 
+ *   - x64 MSVC: Uses __cpuidex() intrinsic (see line 329)
+ *   - GCC/CLANG: Uses inline asm (see line 57)
+ * 
+ * TECHNICAL DETAILS:
+ *   - FASTCALL convention: first param (p) in ECX, second param (func) in EDX
+ *   - Third parameter (subFunc) is passed on stack at [esp+12] after pushes
+ *   - Preserves EBX and EDI registers (callee-saved in x86 calling conventions)
+ *   - Executes CPUID with ECX=subFunc (for functions that use subfunctions like func=7)
+ *   - Stores all four CPUID output registers to the output array
+ * 
+ * ASSEMBLY FLOW:
+ *   1. Push EBX and EDI (callee-saved registers)
+ *   2. Move p (from ECX) to EDI, func (from EDX) to EAX
+ *   3. Load subFunc from stack ([esp+12]) into ECX
+ *   4. Execute CPUID instruction
+ *   5. Store EAX, EBX, ECX, EDX to output array at [EDI]
+ *   6. Restore EDI and EBX
+ *   7. Return with ret 4 (FASTCALL callee cleans 4-byte stack parameter)
+ * 
+ * WHY SUBFUNCTION IS NEEDED:
+ *   Some CPUID functions (e.g., func=7 for extended features, func=4 for cache info)
+ *   require a subfunction parameter in ECX. This function allows calling those
+ *   advanced CPUID functions correctly.
+ * 
+ * CAUTION: This is legacy assembly code for x86 32-bit only.
+ * Changes to this function require careful testing to avoid stack corruption
+ * or register clobbering. The naked attribute means the compiler generates
+ * NO function prologue/epilogue, so all stack and register management must
+ * be done manually in assembly.
+ * 
+ * MAINTENANCE: Do not modify unless absolutely necessary. This code works
+ * correctly and is only used on legacy x86 32-bit MSVC builds. Consider
+ * this working legacy code that should remain stable.
+ */
 static
 void __declspec(naked) Z7_FASTCALL z7_x86_cpuid_subFunc(UInt32 p[4], UInt32 func, UInt32 subFunc)
 {
@@ -245,19 +332,41 @@ void Z7_FASTCALL z7_x86_cpuid_subFunc(UInt32 p[4], UInt32 func, UInt32 subFunc)
 }
 
     #else
-/*
- __cpuid (func == (0 or 7)) requires subfunction number in ECX.
-  MSDN: The __cpuid intrinsic clears the ECX register before calling the cpuid instruction.
-   __cpuid() in new MSVC clears ECX.
-   __cpuid() in old MSVC (14.00) x64 doesn't clear ECX
- We still can use __cpuid for low (func) values that don't require ECX,
- but __cpuid() in old MSVC will be incorrect for some func values: (func == 7).
- So here we use the hack for old MSVC to send (subFunction) in ECX register to cpuid instruction,
- where ECX value is first parameter for FASTCALL / NO_INLINE func.
- So the caller of MY_cpuidex_HACK() sets ECX as subFunction, and
- old MSVC for __cpuid() doesn't change ECX and cpuid instruction gets (subFunction) value.
+/* WORKAROUND: MSVC __cpuid ECX register bug (MSVC < 2010, _MSC_VER < 1600)
  
-DON'T remove Z7_NO_INLINE and Z7_FASTCALL for MY_cpuidex_HACK(): !!!
+ PROBLEM:
+   The cpuid instruction supports a subfunction parameter in ECX for certain 
+   function values (e.g., func==7 for extended features).
+   
+   MSDN states: "The __cpuid intrinsic clears the ECX register before calling 
+   the cpuid instruction."
+   
+   - Modern MSVC (2010+): __cpuidex() properly supports subfunctions
+   - Old MSVC (14.00 = VS2005, _MSC_VER 1400): __cpuid() doesn't clear ECX in x64
+   
+ IMPACT:
+   Old MSVC's __cpuid() works for simple cases (func values that don't use ECX),
+   but fails for func==7 and other subfunction-dependent features.
+   
+ WORKAROUND:
+   We exploit the FASTCALL calling convention (first param in ECX) and NO_INLINE
+   to pass the subFunction value through ECX register. The old MSVC __cpuid()
+   doesn't clear ECX, so the cpuid instruction receives the correct subFunction.
+   
+ AFFECTED VERSIONS:
+   - Visual Studio 2005 (MSVC 8.0, _MSC_VER 1400)
+   - Visual Studio 2008 (MSVC 9.0, _MSC_VER 1500)
+   - Fixed in Visual Studio 2010 (MSVC 10.0, _MSC_VER 1600) with __cpuidex()
+   
+ CURRENT STATUS:
+   This workaround is needed for MSVC < 2010. Current minimum supported version
+   is VS2017 (see BUILDING.md), so this code path should never execute in 
+   supported builds. However, it's kept for compatibility with older toolchains.
+   
+ IMPORTANT: DON'T remove Z7_NO_INLINE and Z7_FASTCALL from MY_cpuidex_HACK()!
+   The workaround relies on the FASTCALL convention to pass subFunction in ECX.
+   
+ FUTURE: Consider removing this workaround and requiring _MSC_VER >= 1600 (VS2010+).
 */
 static
 Z7_NO_INLINE void Z7_FASTCALL MY_cpuidex_HACK(Int32 subFunction, Int32 func, Int32 *CPUInfo)
@@ -266,7 +375,11 @@ Z7_NO_INLINE void Z7_FASTCALL MY_cpuidex_HACK(Int32 subFunction, Int32 func, Int
   __cpuid(CPUInfo, func);
 }
       #define MY_cpuidex(info, func, func2)  MY_cpuidex_HACK(func2, func, info)
-      #pragma message("======== MY_cpuidex_HACK WAS USED ========")
+      #pragma message("======== COMPILER WORKAROUND ACTIVE ========")
+      #pragma message("Using MY_cpuidex_HACK for MSVC < 2010 (VS2005/2008)")
+      #pragma message("This workaround should not be needed with MSVC 2010+ (_MSC_VER >= 1600)")
+      #pragma message("Consider upgrading to Visual Studio 2017 or later (see BUILDING.md)")
+      #pragma message("==========================================")
 static
 void Z7_FASTCALL z7_x86_cpuid_subFunc(UInt32 p[4], UInt32 func, UInt32 subFunc)
 {
@@ -310,79 +423,6 @@ BoolInt x86cpuid_Func_1(UInt32 *p)
   z7_x86_cpuid(p, 1);
   return True;
 }
-
-/*
-static const UInt32 kVendors[][1] =
-{
-  { 0x756E6547 }, // , 0x49656E69, 0x6C65746E },
-  { 0x68747541 }, // , 0x69746E65, 0x444D4163 },
-  { 0x746E6543 }  // , 0x48727561, 0x736C7561 }
-};
-*/
-
-/*
-typedef struct
-{
-  UInt32 maxFunc;
-  UInt32 vendor[3];
-  UInt32 ver;
-  UInt32 b;
-  UInt32 c;
-  UInt32 d;
-} Cx86cpuid;
-
-enum
-{
-  CPU_FIRM_INTEL,
-  CPU_FIRM_AMD,
-  CPU_FIRM_VIA
-};
-int x86cpuid_GetFirm(const Cx86cpuid *p);
-#define x86cpuid_ver_GetFamily(ver) (((ver >> 16) & 0xff0) | ((ver >> 8) & 0xf))
-#define x86cpuid_ver_GetModel(ver)  (((ver >> 12) &  0xf0) | ((ver >> 4) & 0xf))
-#define x86cpuid_ver_GetStepping(ver) (ver & 0xf)
-
-int x86cpuid_GetFirm(const Cx86cpuid *p)
-{
-  unsigned i;
-  for (i = 0; i < sizeof(kVendors) / sizeof(kVendors[0]); i++)
-  {
-    const UInt32 *v = kVendors[i];
-    if (v[0] == p->vendor[0]
-        // && v[1] == p->vendor[1]
-        // && v[2] == p->vendor[2]
-        )
-      return (int)i;
-  }
-  return -1;
-}
-
-BoolInt CPU_Is_InOrder()
-{
-  Cx86cpuid p;
-  UInt32 family, model;
-  if (!x86cpuid_CheckAndRead(&p))
-    return True;
-
-  family = x86cpuid_ver_GetFamily(p.ver);
-  model = x86cpuid_ver_GetModel(p.ver);
-
-  switch (x86cpuid_GetFirm(&p))
-  {
-    case CPU_FIRM_INTEL: return (family < 6 || (family == 6 && (
-        // In-Order Atom CPU
-           model == 0x1C  // 45 nm, N4xx, D4xx, N5xx, D5xx, 230, 330
-        || model == 0x26  // 45 nm, Z6xx
-        || model == 0x27  // 32 nm, Z2460
-        || model == 0x35  // 32 nm, Z2760
-        || model == 0x36  // 32 nm, N2xxx, D2xxx
-        )));
-    case CPU_FIRM_AMD: return (family < 5 || (family == 5 && (model < 6 || model == 0xA)));
-    case CPU_FIRM_VIA: return (family < 6 || (family == 6 && model < 0xF));
-  }
-  return False; // v23 : unknown processors are not In-Order
-}
-*/
 
 #ifdef _WIN32
 #include "7zWindows.h"
