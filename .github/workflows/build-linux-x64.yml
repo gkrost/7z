@@ -1,7 +1,7 @@
 name: Build 7z Linux x64
 
-# This workflow requires GCC 15.2 to meet the minimum compiler version
-# requirements for building 7z with all optimizations enabled.
+# This workflow uses setup-cpp action to quickly install GCC 15 which meets
+# the minimum compiler version requirements for building 7z with all optimizations enabled.
 
 on:
   push:
@@ -21,19 +21,13 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       
-    - name: Install GCC 15.2 and build dependencies
+    - name: Setup GCC 15 and build dependencies
+      uses: aminya/setup-cpp@v1
+      with:
+        compiler: gcc-15
+        
+    - name: Verify GCC installation
       run: |
-        # Add PPA for GCC 15.2
-        sudo add-apt-repository ppa:puni070/gcc-noble -y
-        sudo apt-get update
-        # Install GCC 15.2
-        sudo apt-get install -y gcc-15 g++-15
-        # Set GCC 15 as the default compiler
-        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-15 150 --slave /usr/bin/g++ g++ /usr/bin/g++-15
-        sudo update-alternatives --set gcc /usr/bin/gcc-15
-        # Install other build dependencies
-        sudo apt-get install -y build-essential make
-        # Verify GCC version
         gcc --version
         g++ --version
         
