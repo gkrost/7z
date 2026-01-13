@@ -25,6 +25,7 @@ jobs:
       uses: aminya/setup-cpp@v1
       with:
         compiler: gcc-15
+        make: true
         
     - name: Verify GCC installation
       run: |
