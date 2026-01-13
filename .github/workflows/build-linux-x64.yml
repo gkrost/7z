@@ -2,6 +2,7 @@ name: Build 7z Linux x64
 
 # This workflow requires GCC 15.2 to meet the minimum compiler version
 # requirements for building 7z with all optimizations enabled.
+# Using apt cache action to speed up repeated GCC installations.
 
 on:
   push:
@@ -20,6 +21,14 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+    
+    - name: Cache apt packages
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/apt/archives
+        key: ${{ runner.os }}-apt-gcc15-${{ hashFiles('.github/workflows/build-linux-x64.yml') }}
+        restore-keys: |
+          ${{ runner.os }}-apt-gcc15-
       
     - name: Install GCC 15.2 and build dependencies
       run: |
