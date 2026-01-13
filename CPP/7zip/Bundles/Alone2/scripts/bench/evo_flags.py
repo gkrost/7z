@@ -284,7 +284,12 @@ def evolve(args: argparse.Namespace) -> None:
         population = next_population
 
         if args.verbose:
+            top_scores = scores[: max(args.top, 1)]
+            summary = ", ".join(
+                f"{candidate.key()}={score:.2f}" for candidate, score in top_scores
+            )
             print(f"Generation {generation}: best score {scores[0][1]:.2f}")
+            print(f"Top {len(top_scores)}: {summary}")
 
     if best_record:
         print("Best result")
@@ -311,6 +316,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--resume", action="store_true", default=True)
     parser.add_argument("--no-resume", action="store_false", dest="resume")
     parser.add_argument("--blacklist-reset", action="store_true")
+    parser.add_argument("--top", type=int, default=3)
     parser.add_argument("--verbose", action="store_true")
     return parser.parse_args()
 
