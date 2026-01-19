@@ -26,20 +26,20 @@ Igor Pavlov : Public domain */
 #if defined(__GNUC__) /* && (__GNUC__ >= 10) */ \
     || defined(__clang__) /* && (__clang_major__ >= 10) */
 
-/* Minimum GCC version requirement: 13.4
-   GCC 13.4 is the lowest version still maintained by the GCC team.
+/* Minimum GCC version requirement: 13.3.0
+   GCC 13.3.0 (Ubuntu 13.3.0-6ubuntu2~24.04) is the minimum supported version.
    All workarounds for older GCC versions have been removed.
 */
 #if defined(__GNUC__) && !defined(__clang__)
-  #if __GNUC__ < 13 || (__GNUC__ == 13 && __GNUC_MINOR__ < 4)
-    #error "GCC 13.4 or newer is required. Please upgrade your compiler."
+  #if __GNUC__ < 13 || (__GNUC__ == 13 && __GNUC_MINOR__ < 3)
+    #error "GCC 13.3.0 or newer is required. Please upgrade your compiler."
   #endif
 #endif
 
 #define ASM_LN "\n"
 
 /* Standard cpuid implementation without legacy workarounds.
-   GCC 13.4+ and modern Clang handle cpuid correctly without special handling.
+   GCC 13.3.0+ and modern Clang handle cpuid correctly without special handling.
 */
 #define x86_cpuid_MACRO_2(p, func, subFunc) { \
   __asm__ __volatile__ ( \
