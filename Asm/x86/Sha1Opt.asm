@@ -68,9 +68,8 @@ endif
 rState equ REG_ABI_PARAM_0
 rData  equ REG_ABI_PARAM_1
 
-
 MY_sha1rnds4 macro a1, a2, imm
-        db 0fH, 03aH, 0ccH, (0c0H + a1 * 8 + a2), imm
+        db 0fH, 03aH, 0ccH, (0c0H + a1 * 8 + a2), ((imm) AND 0FFh)
 endm
 
 MY_SHA_INSTR macro cmd, a1, a2
