@@ -15,7 +15,7 @@
 #include "CpuArch.h"
 
 /* Disable false-positive GCC stringop-overflow warning with -O3 optimization.
-   GCC incorrectly flags line 488 where temp[i] = src[i] with (rem <= 4) and
+   GCC incorrectly flags line 497 where temp[i] = src[i] with (rem <= 4) and
    temp[] is 8 bytes. This is a known GCC false positive with aggressive optimization. */
 #if defined(__GNUC__) && !defined(__clang__)
 #if __GNUC__ >= 7

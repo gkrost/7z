@@ -139,20 +139,20 @@ Based on profiling data and applied optimizations:
 ## Platform-Specific Notes
 
 ### x86-64
-- Full benefit from branch hints with GCC 5+ and Clang 8+
+- Branch prediction hints active with Clang 8+ (GCC builds use no-op macros)
 - SIMD optimizations use SSE4.1 and AVX2 where available
 - LTO particularly effective on x86-64
 
 ### ARM64
-- Branch hints supported on GCC 6+ and Clang 3.8+
+- Branch prediction hints active with Clang 8+ (GCC builds use no-op macros)
 - NEON optimizations for vector operations
 - Good performance gains expected
 
 ### Compiler Compatibility
 
 Branch prediction hints (`Z7_LIKELY`/`Z7_UNLIKELY`) are defined in `C/Compiler.h`:
-- Clang 8+ and GCC 10+: Full `__builtin_expect()` support
-- Older compilers: Macros expand to no-ops (no performance penalty)
+- Clang 8+: Full `__builtin_expect()`-based branch prediction hints
+- GCC (all currently supported versions) and other non-Clang compilers: Macros expand to no-ops (no performance penalty)
 
 ## Troubleshooting
 
@@ -195,6 +195,6 @@ Additional optimizations that could be explored:
 
 ## References
 
-- Original performance analysis: See issue #[number]
+- Original performance analysis: See issue gkrost/7z#52
 - Compiler.h: Branch prediction macro definitions
 - LzFind.c, LzFindOpt.c: Optimized match-finder code
