@@ -135,7 +135,7 @@ jobs:
               ls -lah b/g_x64/ || echo "Failed to list b/g_x64/"
               echo ""
               echo "Object files in b/g_x64/:"
-              printf '%s\n' b/g_x64/*.o || echo "No .o files found"
+              printf '%s\n' b/g_x64/*.o 2>/dev/null || echo "No .o files found"
             fi
           else
             echo "⚠ No object files produced in ASM build directory"
