@@ -984,18 +984,18 @@ UInt32 * GetMatchesSpec1(UInt32 lenLimit, UInt32 curMatch, UInt32 pos, const Byt
       const Byte *pb = cur - delta;
       unsigned len = (len0 < len1 ? len0 : len1);
       const UInt32 pair0 = pair[0];
-      if (pb[len] == cur[len])
+      if (Z7_LIKELY(pb[len] == cur[len]))
       {
-        if (++len != lenLimit && pb[len] == cur[len])
+        if (++len != lenLimit && Z7_LIKELY(pb[len] == cur[len]))
           while (++len != lenLimit)
-            if (pb[len] != cur[len])
+            if (Z7_UNLIKELY(pb[len] != cur[len]))
               break;
-        if (maxLen < len)
+        if (Z7_LIKELY(maxLen < len))
         {
           maxLen = (UInt32)len;
           *d++ = (UInt32)len;
           *d++ = delta - 1;
-          if (len == lenLimit)
+          if (Z7_UNLIKELY(len == lenLimit))
           {
             *ptr1 = pair0;
             *ptr0 = pair[1];
@@ -1051,13 +1051,13 @@ static void SkipMatchesSpec(UInt32 lenLimit, UInt32 curMatch, UInt32 pos, const 
       CLzRef *pair = son + ((size_t)(_cyclicBufferPos - delta + (_cyclicBufferPos < delta ? _cyclicBufferSize : 0)) << 1);
       const Byte *pb = cur - delta;
       unsigned len = (len0 < len1 ? len0 : len1);
-      if (pb[len] == cur[len])
+      if (Z7_LIKELY(pb[len] == cur[len]))
       {
         while (++len != lenLimit)
-          if (pb[len] != cur[len])
+          if (Z7_UNLIKELY(pb[len] != cur[len]))
             break;
         {
-          if (len == lenLimit)
+          if (Z7_UNLIKELY(len == lenLimit))
           {
             *ptr1 = pair[0];
             *ptr0 = pair[1];
