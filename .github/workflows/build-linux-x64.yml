@@ -30,12 +30,12 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-apt-gcc13-
       
-    - name: Install GCC 13.3.0 and build dependencies
+    - name: Install GCC 13 and build dependencies
       run: |
-        # Add PPA for GCC 13.3.0
+        # Add PPA for GCC 13.x (provides GCC 13.3.0 on Ubuntu 24.04)
         sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
         sudo apt-get update
-        # Install GCC 13.3.0
+        # Install GCC 13 (version 13.3.0 on Ubuntu 24.04)
         sudo apt-get install -y gcc-13 g++-13
         # Set GCC 13 as the default compiler
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 130 --slave /usr/bin/g++ g++ /usr/bin/g++-13
