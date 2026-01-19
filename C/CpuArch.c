@@ -610,19 +610,12 @@ static UInt64 x86_xgetbv_0(UInt32 num)
 #elif defined(__GNUC__) || defined(__clang__) || defined(__SUNPRO_CC)
 
   UInt32 a, d;
- #if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 4))
+  // GCC 13.3.0+ always supports xgetbv instruction name
   __asm__
   (
     "xgetbv"
     : "=a"(a), "=d"(d) : "c"(num) : "cc"
   );
- #else // is old gcc
-  __asm__
-  (
-    ".byte 0x0f, 0x01, 0xd0" "\n\t"
-    : "=a"(a), "=d"(d) : "c"(num) : "cc"
-  );
- #endif
   return ((UInt64)d << 32) | a;
   // return a;
 
