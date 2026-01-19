@@ -22,10 +22,25 @@ CFLAGS_BASE_LIST = -c
 # for ASM file
 # CFLAGS_BASE_LIST = -S
 
-FLAGS_FLTO = -flto
-FLAGS_FLTO =
+# Optimization level control
+# Set OPT_LEVEL=3 for -O3, default is -O2
+ifndef OPT_LEVEL
+OPT_LEVEL = 2
+endif
 
-CFLAGS_BASE = $(MY_ARCH_2) -O2 $(CFLAGS_BASE_LIST) $(CFLAGS_WARN_WALL) $(CFLAGS_WARN) \
+# LTO control
+# Set USE_LTO=1 to enable Link-Time Optimization
+ifdef USE_LTO
+FLAGS_LTO = -flto
+LDFLAGS_LTO = -flto
+else
+FLAGS_LTO =
+LDFLAGS_LTO =
+endif
+
+FLAGS_FLTO = $(FLAGS_LTO)
+
+CFLAGS_BASE = $(MY_ARCH_2) -O$(OPT_LEVEL) $(CFLAGS_BASE_LIST) $(CFLAGS_WARN_WALL) $(CFLAGS_WARN) \
  -DNDEBUG -D_REENTRANT -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE
 
 
@@ -54,7 +69,7 @@ endif
 endif
 endif
 
-LDFLAGS_STATIC = -DNDEBUG $(LDFLAGS_STATIC_2)
+LDFLAGS_STATIC = -DNDEBUG $(LDFLAGS_STATIC_2) $(LDFLAGS_LTO)
 
 ifdef DEF_FILE
 

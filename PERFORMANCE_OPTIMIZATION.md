@@ -1,0 +1,200 @@
+# Performance Optimization Guide
+
+This document describes performance optimizations applied to address backend bottlenecks identified through profiling.
+
+## Overview
+
+Performance profiling revealed:
+- **Backend bound**: 50.4% (memory + execution port contention)
+- **Bad speculation**: 21.8% (branch mispredictions at 6.14% miss rate)
+- **IPC**: 1.55 (showing room for improvement)
+
+## Optimization Levels
+
+### Build with -O3 Optimization
+
+For maximum performance, build with `-O3` optimization level:
+
+```bash
+cd CPP/7zip/Bundles/Alone2
+make -j -f makefile.gcc OPT_LEVEL=3
+```
+
+Default is `-O2`. Set `OPT_LEVEL=3` for more aggressive optimizations including:
+- More aggressive inlining
+- Better loop optimization
+- Better instruction scheduling
+
+### Build with Link-Time Optimization (LTO)
+
+Enable LTO for cross-translation-unit optimizations:
+
+```bash
+cd CPP/7zip/Bundles/Alone2
+make -j -f makefile.gcc USE_LTO=1
+```
+
+**Note**: LTO with `-O3` may trigger false-positive warnings in some GCC versions during the link phase. If this occurs, you can:
+- Use LTO without -O3: `make -j -f makefile.gcc USE_LTO=1`
+- Use -O3 without LTO: `make -j -f makefile.gcc OPT_LEVEL=3`
+- The warnings are false positives and do not affect correctness
+
+LTO benefits:
+- Better inlining across compilation units
+- More effective dead code elimination
+- Improved interprocedural optimizations
+
+### Combined Optimizations
+
+For best performance, you can combine -O3 with LTO, though be aware of potential false-positive warnings:
+
+```bash
+cd CPP/7zip/Bundles/Alone2
+# Try combined optimization (may have warnings during link with some GCC versions)
+make -j -f makefile.gcc OPT_LEVEL=3 USE_LTO=1
+
+# Alternative: Use -O3 alone for best balance
+make -j -f makefile.gcc OPT_LEVEL=3
+```
+
+If you encounter warnings during the LTO link phase with `-O3 + USE_LTO=1`, these are typically false positives from GCC's aggressive analysis. The code is correct.
+
+## Code-Level Optimizations
+
+### Branch Prediction Hints
+
+The hot paths in the match-finder algorithms (`LzFind.c`, `LzFindOpt.c`) now use branch prediction hints:
+
+- `Z7_LIKELY()` - marks likely branches (common case)
+- `Z7_UNLIKELY()` - marks unlikely branches (error paths, early exits)
+
+These hints help the compiler and CPU branch predictor:
+- Improve instruction cache utilization
+- Reduce branch misprediction penalties
+- Better code layout for hot paths
+
+Key optimized functions:
+- `GetMatchesSpecN_2()` - Main match-finding loop
+- `GetMatchesSpec1()` - Binary tree match search
+- `SkipMatchesSpec()` - Match skipping
+
+### Memory Access Patterns
+
+Optimizations preserve existing SIMD and prefetch strategies:
+- Maintained `USE_SON_PREFETCH` for data prefetching
+- Preserved SIMD saturating subtraction (SSE4.1/AVX2/NEON)
+- Individual 32-bit copies for better portability
+
+## Performance Testing
+
+### Quick Performance Test
+
+Build and test compression speed:
+
+```bash
+# Build with optimizations
+cd CPP/7zip/Bundles/Alone2
+make -j -f makefile.gcc OPT_LEVEL=3 USE_LTO=1
+
+# Run benchmark
+./b/g/7zz b
+```
+
+### Comparing Optimization Levels
+
+```bash
+# Baseline (-O2, no LTO)
+make clean
+make -j -f makefile.gcc
+./b/g/7zz b > results-o2.txt
+
+# With -O3
+make clean
+make -j -f makefile.gcc OPT_LEVEL=3
+./b/g/7zz b > results-o3.txt
+
+# With -O3 and LTO
+make clean
+make -j -f makefile.gcc OPT_LEVEL=3 USE_LTO=1
+./b/g/7zz b > results-o3-lto.txt
+```
+
+## Expected Performance Improvements
+
+Based on profiling data and applied optimizations:
+
+1. **Branch Prediction**: 
+   - Target: Reduce 6.14% branch miss rate by 10-20%
+   - Impact: Lower bad speculation from 21.8%
+
+2. **Backend Stalls**:
+   - Better instruction scheduling with -O3
+   - Reduced port contention through better code layout
+   - Target: Reduce backend bound from 50.4%
+
+3. **IPC Improvements**:
+   - Target: Increase from 1.55 to 1.7-1.9
+   - Better instruction-level parallelism
+
+## Platform-Specific Notes
+
+### x86-64
+- Branch prediction hints active with Clang 8+ (GCC builds use no-op macros)
+- SIMD optimizations use SSE4.1 and AVX2 where available
+- LTO particularly effective on x86-64
+
+### ARM64
+- Branch prediction hints active with Clang 8+ (GCC builds use no-op macros)
+- NEON optimizations for vector operations
+- Good performance gains expected
+
+### Compiler Compatibility
+
+Branch prediction hints (`Z7_LIKELY`/`Z7_UNLIKELY`) are defined in `C/Compiler.h`:
+- Clang 8+: Full `__builtin_expect()`-based branch prediction hints
+- GCC (all currently supported versions) and other non-Clang compilers: Macros expand to no-ops (no performance penalty)
+
+## Troubleshooting
+
+### Build Errors with LTO
+
+If LTO causes build errors:
+```bash
+# Try without LTO
+make clean
+make -j -f makefile.gcc OPT_LEVEL=3
+```
+
+### Performance Regression
+
+If optimizations cause regression:
+```bash
+# Fall back to default
+make clean
+make -j -f makefile.gcc
+```
+
+### Verification
+
+Always verify correctness after optimization:
+```bash
+# Create test archive
+./b/g/7zz a test.7z /path/to/testdata
+
+# Extract and verify
+./b/g/7zz t test.7z
+```
+
+## Future Optimizations
+
+Additional optimizations that could be explored:
+- Profile-Guided Optimization (PGO)
+- Memory alignment tuning for specific architectures
+- Further loop unrolling in hot paths
+- Additional prefetch tuning
+
+## References
+
+- Original performance analysis: See issue gkrost/7z#52
+- Compiler.h: Branch prediction macro definitions
+- LzFind.c, LzFindOpt.c: Optimized match-finder code

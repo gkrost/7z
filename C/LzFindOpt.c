@@ -262,12 +262,12 @@ UInt32 * Z7_FASTCALL GetMatchesSpecN_2(const Byte *lenLimit, size_t pos, const B
     UInt32 cbs;
   #endif
 
-    if (hash == size)
+    if (Z7_UNLIKELY(hash == size))
       break;
 
     delta = *hash++;
 
-    if (delta == 0)
+    if (Z7_UNLIKELY(delta == 0))
       return NULL;
 
     lenLimit++;
@@ -276,13 +276,13 @@ UInt32 * Z7_FASTCALL GetMatchesSpecN_2(const Byte *lenLimit, size_t pos, const B
     cbs = _cyclicBufferSize;
     if ((UInt32)pos < cbs)
     {
-      if (delta > (UInt32)pos)
+      if (Z7_UNLIKELY(delta > (UInt32)pos))
         return NULL;
       cbs = (UInt32)pos;
     }
   #endif
 
-    if (delta >= cbs)
+    if (Z7_UNLIKELY(delta >= cbs))
     {
       CLzRef *ptr1 = son + ((size_t)_cyclicBufferPos << 1);
       *d++ = 0;
@@ -317,22 +317,22 @@ else
       const UInt32 pair0 = *pair;
     #endif
 
-      if (len[diff] == len[0])
+      if (Z7_LIKELY(len[diff] == len[0]))
       {
-        if (++len != lenLimit && len[diff] == len[0])
+        if (++len != lenLimit && Z7_LIKELY(len[diff] == len[0]))
           while (++len != lenLimit)
           {
             LOG_ITER(g_NumIters_Bytes++);
-            if (len[diff] != len[0])
+            if (Z7_UNLIKELY(len[diff] != len[0]))
               break;
           }
-        if (maxLen < len)
+        if (Z7_LIKELY(maxLen < len))
         {
           maxLen = len;
           *d++ = (UInt32)(len - cur);
           *d++ = delta - 1;
           
-          if (len == lenLimit)
+          if (Z7_UNLIKELY(len == lenLimit))
           {
             const UInt32 pair1 = pair[1];
             *ptr1 =
@@ -347,7 +347,7 @@ else
 
             #ifdef USE_LONG_MATCH_OPT
 
-                if (hash == size || *hash != delta || lenLimit[diff] != lenLimit[0] || d >= limit)
+                if (Z7_UNLIKELY(hash == size || *hash != delta || lenLimit[diff] != lenLimit[0] || d >= limit))
                   break;
 
             {
@@ -379,7 +379,7 @@ else
                 }
                 pos++;
                 hash++;
-                if (hash == size || *hash != delta || lenLimit[diff] != lenLimit[0] || d >= limit)
+                if (Z7_UNLIKELY(hash == size || *hash != delta || lenLimit[diff] != lenLimit[0] || d >= limit))
                   break;
               } // for() end for long matches
             }
@@ -397,7 +397,7 @@ else
           *ptr1 = curMatch;
           ptr1 = pair + 1;
           len1 = len;
-          if (delta >= curMatch)
+          if (Z7_UNLIKELY(delta >= curMatch))
             return NULL;
         }
         else
@@ -406,12 +406,12 @@ else
           *ptr0 = curMatch;
           ptr0 = pair;
           len0 = len;
-          if (delta >= curMatch)
+          if (Z7_UNLIKELY(delta >= curMatch))
             return NULL;
         }
         delta = (UInt32)pos - delta;
  
-        if (--cutValue == 0 || delta >= cbs)
+        if (Z7_UNLIKELY(--cutValue == 0 || delta >= cbs))
         {
           *ptr0 = *ptr1 = kEmptyHashValue;
           _distances[-1] = (UInt32)(d - _distances);

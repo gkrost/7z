@@ -49,14 +49,28 @@ LFLAGS_STRIP = -s
 endif
 endif
 
+# Optimization level control
+# Set OPT_LEVEL=3 for -O3, default is -O2
+ifndef OPT_LEVEL
+OPT_LEVEL = 2
+endif
+
+# LTO control
+# Set USE_LTO=1 to enable Link-Time Optimization
+ifdef USE_LTO
+FLAGS_LTO = -flto
+LDFLAGS_LTO = -flto
+else
+FLAGS_LTO =
+LDFLAGS_LTO =
+endif
+
 # CFLAGS_BASE_LIST = -S
-CFLAGS_BASE = -O2 $(CFLAGS_BASE_LIST) $(CFLAGS_WARN_WALL) $(CFLAGS_WARN) \
+CFLAGS_BASE = -O$(OPT_LEVEL) $(CFLAGS_BASE_LIST) $(CFLAGS_WARN_WALL) $(CFLAGS_WARN) \
  $(CFLAGS_DEBUG) -D_REENTRANT -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE \
  -fPIC
 
-FLAGS_FLTO = -ffunction-sections
-FLAGS_FLTO = -flto
-FLAGS_FLTO = $(FLAGS_BASE)
+FLAGS_FLTO = $(FLAGS_LTO)
 # -DZ7_AFFINITY_DISABLE
 
 
@@ -85,7 +99,7 @@ endif
 endif
 endif
 
-LDFLAGS_STATIC = $(CFLAGS_DEBUG) $(LDFLAGS_STATIC_2) $(LDFLAGS_STATIC_3)
+LDFLAGS_STATIC = $(CFLAGS_DEBUG) $(LDFLAGS_STATIC_2) $(LDFLAGS_STATIC_3) $(LDFLAGS_LTO)
 
 ifndef O
   ifdef IS_MINGW
