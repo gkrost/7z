@@ -34,6 +34,11 @@ cd CPP/7zip/Bundles/Alone2
 make -j -f makefile.gcc USE_LTO=1
 ```
 
+**Note**: LTO with `-O3` may trigger false-positive warnings in some GCC versions during the link phase. If this occurs, you can:
+- Use LTO without -O3: `make -j -f makefile.gcc USE_LTO=1`
+- Use -O3 without LTO: `make -j -f makefile.gcc OPT_LEVEL=3`
+- The warnings are false positives and do not affect correctness
+
 LTO benefits:
 - Better inlining across compilation units
 - More effective dead code elimination
@@ -41,12 +46,18 @@ LTO benefits:
 
 ### Combined Optimizations
 
-For best performance, combine both:
+For best performance, you can combine -O3 with LTO, though be aware of potential false-positive warnings:
 
 ```bash
 cd CPP/7zip/Bundles/Alone2
+# Try combined optimization (may have warnings during link with some GCC versions)
 make -j -f makefile.gcc OPT_LEVEL=3 USE_LTO=1
+
+# Alternative: Use -O3 alone for best balance
+make -j -f makefile.gcc OPT_LEVEL=3
 ```
+
+If you encounter warnings during the LTO link phase with `-O3 + USE_LTO=1`, these are typically false positives from GCC's aggressive analysis. The code is correct.
 
 ## Code-Level Optimizations
 
