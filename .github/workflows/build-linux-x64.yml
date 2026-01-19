@@ -1,7 +1,8 @@
 name: Build 7z Linux x64
 
-# This workflow requires GCC 15.2 to meet the minimum compiler version
+# This workflow requires GCC 13.3.0 to meet the minimum compiler version
 # requirements for building 7z with all optimizations enabled.
+# Using apt cache action to speed up repeated GCC installations.
 
 on:
   push:
@@ -20,17 +21,25 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+    
+    - name: Cache apt packages
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/apt/archives
+        key: ${{ runner.os }}-apt-gcc13-${{ hashFiles('.github/workflows/build-linux-x64.yml') }}
+        restore-keys: |
+          ${{ runner.os }}-apt-gcc13-
       
-    - name: Install GCC 15.2 and build dependencies
+    - name: Install GCC 13 and build dependencies
       run: |
-        # Add PPA for GCC 15.2
-        sudo add-apt-repository ppa:puni070/gcc-noble -y
+        # Add PPA for GCC 13.x (provides GCC 13.3.0 on Ubuntu 24.04)
+        sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
         sudo apt-get update
-        # Install GCC 15.2
-        sudo apt-get install -y gcc-15 g++-15
-        # Set GCC 15 as the default compiler
-        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-15 150 --slave /usr/bin/g++ g++ /usr/bin/g++-15
-        sudo update-alternatives --set gcc /usr/bin/gcc-15
+        # Install GCC 13 (version 13.3.0 on Ubuntu 24.04)
+        sudo apt-get install -y gcc-13 g++-13
+        # Set GCC 13 as the default compiler
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 130 --slave /usr/bin/g++ g++ /usr/bin/g++-13
+        sudo update-alternatives --set gcc /usr/bin/gcc-13
         # Install other build dependencies
         sudo apt-get install -y build-essential make
         # Verify GCC version
@@ -117,12 +126,33 @@ jobs:
               printf '%s\n' b/g_x64/*.o | grep -E "(7zCrcOpt|AesOpt|Sha1Opt|Sha256Opt|LzFindOpt|XzCrc64Opt|Sort)"
             else
               echo "⚠ No ASM object files found (C fallback used)"
+              echo ""
+              echo "Diagnostic information:"
+              echo "Directory listing of b/:"
+              ls -lah b/ || echo "Failed to list b/"
+              echo ""
+              echo "Directory listing of b/g_x64/:"
+              ls -lah b/g_x64/ || echo "Failed to list b/g_x64/"
+              echo ""
+              echo "Object files in b/g_x64/:"
+              printf '%s\n' b/g_x64/*.o 2>/dev/null
             fi
           else
             echo "⚠ No object files produced in ASM build directory"
+            echo ""
+            echo "Diagnostic information:"
+            echo "Directory listing of b/:"
+            ls -lah b/ || echo "Failed to list b/"
+            echo ""
+            echo "Directory listing of b/g_x64/:"
+            ls -lah b/g_x64/ || echo "Failed to list b/g_x64/"
           fi
         else
           echo "⚠ ASM build directory not found - using standard C implementations"
+          echo ""
+          echo "Diagnostic information:"
+          echo "Directory listing of b/:"
+          ls -lah b/ || echo "b/ directory does not exist"
         fi
         
     - name: Upload 7za binary
