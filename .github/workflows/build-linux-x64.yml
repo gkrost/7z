@@ -126,12 +126,33 @@ jobs:
               printf '%s\n' b/g_x64/*.o | grep -E "(7zCrcOpt|AesOpt|Sha1Opt|Sha256Opt|LzFindOpt|XzCrc64Opt|Sort)"
             else
               echo "⚠ No ASM object files found (C fallback used)"
+              echo ""
+              echo "Diagnostic information:"
+              echo "Directory listing of b/:"
+              ls -lah b/ || echo "Failed to list b/"
+              echo ""
+              echo "Directory listing of b/g_x64/:"
+              ls -lah b/g_x64/ || echo "Failed to list b/g_x64/"
+              echo ""
+              echo "Object files in b/g_x64/:"
+              printf '%s\n' b/g_x64/*.o 2>/dev/null
             fi
           else
             echo "⚠ No object files produced in ASM build directory"
+            echo ""
+            echo "Diagnostic information:"
+            echo "Directory listing of b/:"
+            ls -lah b/ || echo "Failed to list b/"
+            echo ""
+            echo "Directory listing of b/g_x64/:"
+            ls -lah b/g_x64/ || echo "Failed to list b/g_x64/"
           fi
         else
           echo "⚠ ASM build directory not found - using standard C implementations"
+          echo ""
+          echo "Diagnostic information:"
+          echo "Directory listing of b/:"
+          ls -lah b/ || echo "b/ directory does not exist"
         fi
         
     - name: Upload 7za binary
